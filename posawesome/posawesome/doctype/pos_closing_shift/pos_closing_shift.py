@@ -112,6 +112,7 @@ def make_closing_shift_from_opening(opening_shift):
     for d in invoices:
         pos_transactions.append(frappe._dict({
             'sales_invoice': d.name,
+            'status': d.status,
             'posting_date': d.posting_date,
             'grand_total': d.grand_total,
             'customer': d.customer
