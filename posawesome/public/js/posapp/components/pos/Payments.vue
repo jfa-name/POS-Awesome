@@ -292,7 +292,7 @@
           </v-col>
           <v-col
             cols="6"
-            v-if="pos_profile.posa_allow_sales_order && invoiceType == 'Order'"
+            v-if="pos_profile.posa_allow_delivery_note && invoiceType == 'Delivery Note'"
           >
             <v-menu
               ref="order_delivery_date"
@@ -1251,9 +1251,9 @@ export default {
       return total;
     },
     vaildatPayment() {
-      if (this.pos_profile.posa_allow_sales_order) {
+      if (this.pos_profile.posa_allow_delivery_note) {
         if (
-          this.invoiceType == 'Order' &&
+          this.invoiceType == 'Delivery Note' &&
           !this.invoice_doc.posa_delivery_date
         ) {
           return true;
@@ -1314,7 +1314,7 @@ export default {
       });
       evntBus.$on('update_invoice_type', (data) => {
         this.invoiceType = data;
-        if (this.invoice_doc && data != 'Order') {
+        if (this.invoice_doc && data != 'Delivery Note') {
           this.invoice_doc.posa_delivery_date = null;
           this.invoice_doc.posa_notes = null;
           this.invoice_doc.shipping_address_name = null;

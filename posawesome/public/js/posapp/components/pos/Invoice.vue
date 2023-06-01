@@ -24,20 +24,20 @@
     >
       <v-row align="center" class="items px-2 py-1">
         <v-col
-          v-if="pos_profile.posa_allow_sales_order"
+          v-if="pos_profile.posa_allow_delivery_note"
           cols="9"
           class="pb-2 pr-0"
         >
           <Customer></Customer>
         </v-col>
         <v-col
-          v-if="!pos_profile.posa_allow_sales_order"
+          v-if="!pos_profile.posa_allow_delivery_note"
           cols="12"
           class="pb-2"
         >
           <Customer></Customer>
         </v-col>
-        <v-col v-if="pos_profile.posa_allow_sales_order" cols="3" class="pb-2">
+        <v-col v-if="pos_profile.posa_allow_delivery_note" cols="3" class="pb-2">
           <v-select
             dense
             hide-details
@@ -507,8 +507,8 @@
                   <v-col
                     cols="4"
                     v-if="
-                      pos_profile.posa_allow_sales_order &&
-                      invoiceType == 'Order'
+                      pos_profile.posa_allow_delivery_note &&
+                      invoiceType == 'Delivery Note'
                     "
                   >
                     <v-menu
@@ -774,7 +774,7 @@ export default {
       posa_coupons: [],
       allItems: [],
       discount_percentage_offer_name: null,
-      invoiceTypes: ['Invoice', 'Order'],
+      invoiceTypes: ['Invoice', 'Delivery Note'],
       invoiceType: 'Invoice',
       itemsPerPage: 1000,
       expanded: [],
@@ -980,7 +980,7 @@ export default {
     cancel_invoice() {
       const doc = this.get_invoice_doc();
       this.invoiceType = 'Invoice';
-      this.invoiceTypes = ['Invoice', 'Order'];
+      this.invoiceTypes = ['Invoice', 'Delivery Note'];
       this.posting_date = frappe.datetime.nowdate();
       if (doc.name && this.pos_profile.posa_allow_delete) {
         frappe.call({
@@ -1035,7 +1035,7 @@ export default {
         this.discount_amount = 0;
         this.additional_discount_percentage = 0;
         this.invoiceType = 'Invoice';
-        this.invoiceTypes = ['Invoice', 'Order'];
+        this.invoiceTypes = ['Invoice', 'Delivery Note'];
       } else {
         if (data.is_return) {
           evntBus.$emit('set_customer_readonly', true);
@@ -2487,8 +2487,8 @@ export default {
         frappe.defaults.get_default('float_precision') || 2;
       this.currency_precision =
         frappe.defaults.get_default('currency_precision') || 2;
-      this.invoiceType = this.pos_profile.posa_default_sales_order
-        ? 'Order'
+      this.invoiceType = this.pos_profile.posa_default_delivery_note
+        ? 'Delivery Note'
         : 'Invoice';
     });
     evntBus.$on('add_item', (item) => {

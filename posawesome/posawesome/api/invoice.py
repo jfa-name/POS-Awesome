@@ -24,6 +24,7 @@ def validate(doc, method):
 def before_submit(doc, method):
     add_loyalty_point(doc)
     create_sales_order(doc)
+    create_delivery_note(doc)
     update_coupon(doc, "used")
 
 
@@ -112,6 +113,81 @@ def make_sales_order(source_name, target_doc=None, ignore_permissions=True):
             },
             "Sales Invoice Item": {
                 "doctype": "Sales Order Item",
+                "field_map": {
+                    "cost_center": "cost_center",
+                    "Warehouse": "warehouse",
+                    "delivery_date": "posa_delivery_date",
+                    "posa_notes": "posa_notes",
+                },
+                "postprocess": update_item,
+            },
+            "Sales Taxes and Charges": {
+                "doctype": "Sales Taxes and Charges",
+                "add_if_empty": True,
+            },
+            "Sales Team": {"doctype": "Sales Team", "add_if_empty": True},
+            "Payment Schedule": {"doctype": "Payment Schedule", "add_if_empty": True},
+        },
+        target_doc,
+        set_missing_values,
+        ignore_permissions=ignore_permissions,
+    )
+
+    return doclist
+
+def create_delivery_note(doc):
+    if (
+        doc.posa_pos_opening_shift
+        and doc.pos_profile
+        and doc.posa_delivery_date
+        and not doc.update_stock
+        and frappe.get_value("POS Profile", doc.pos_profile, "posa_allow_delivery_note")
+    ):
+        delivery_note_doc = make_delivery_note(doc.name)
+        if delivery_note_doc:
+            delivery_note_doc.posa_notes = doc.posa_notes
+            delivery_note_doc.flags.ignore_permissions = True
+            delivery_note_doc.flags.ignore_account_permission = True
+            delivery_note_doc.save()
+            delivery_note_doc.submit()
+            url = frappe.utils.get_url_to_form(
+                delivery_note_doc.doctype, delivery_note_doc.name
+            )
+            msgprint = "Delivery Note Created at <a href='{0}'>{1}</a>".format(
+                url, delivery_note_doc.name
+            )
+            frappe.msgprint(
+                _(msgprint), title="Delivery Note Created", indicator="green", alert=True
+            )
+            i = 0
+            for item in delivery_note_doc.items:
+                doc.items[i].delivery_note = delivery_note_doc.name
+                doc.items[i].so_detail = item.name
+                i += 1
+
+
+def make_delivery_note(source_name, target_doc=None, ignore_permissions=True):
+    def set_missing_values(source, target):
+        target.ignore_pricing_rule = 1
+        target.flags.ignore_permissions = ignore_permissions
+        target.run_method("set_missing_values")
+        target.run_method("calculate_taxes_and_totals")
+
+    def update_item(obj, target, source_parent):
+        target.stock_qty = flt(obj.qty) * flt(obj.conversion_factor)
+        target.delivery_date = (
+            obj.posa_delivery_date or source_parent.posa_delivery_date
+        )
+
+    doclist = get_mapped_doc(
+        "Delivery Note",
+        source_name,
+        {
+            "Delivery Note": {
+                "doctype": "Delivery Note",
+            },
+            "Delivery Note Item": {
+                "doctype": "Delivery Note Item",
                 "field_map": {
                     "cost_center": "cost_center",
                     "Warehouse": "warehouse",
