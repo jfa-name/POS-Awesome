@@ -549,6 +549,177 @@ def submit_invoice(invoice, data):
 
     return {"name": invoice_doc.name, "status": invoice_doc.docstatus}
 
+@frappe.whitelist()
+def update_delivery_note(data):
+    data = json.loads(data)
+    if data.get("name"):
+        delivery_note_doc = frappe.get_doc("Delivery Note", data.get("name"))
+        delivery_note_doc.update(data)
+    else:
+        delivery_note_doc = frappe.get_doc(data)
+
+    delivery_note_doc.set_missing_values()
+    delivery_note_doc.flags.ignore_permissions = True
+    frappe.flags.ignore_account_permission = True
+
+    if delivery_note_doc.is_return and delivery_note_doc.return_against:
+        ref_doc = frappe.get_cached_doc(delivery_note_doc.doctype, delivery_note_doc.return_against)
+        if not ref_doc.update_stock:
+            delivery_note_doc.update_stock = 0
+    allow_zero_rated_items = frappe.get_cached_value(
+        "POS Profile", delivery_note_doc.pos_profile, "posa_allow_zero_rated_items"
+    )
+    for item in delivery_note_doc.items:
+        if not item.rate or item.rate == 0:
+            if allow_zero_rated_items:
+                item.price_list_rate = 0.00
+                item.is_free_item = 1
+            else:
+                frappe.throw(
+                    _("Rate cannot be zero for item {0}").format(item.item_code)
+                )
+        else:
+            item.is_free_item = 0
+        add_taxes_from_tax_template(item, delivery_note_doc)
+
+    if frappe.get_cached_value(
+        "POS Profile", delivery_note_doc.pos_profile, "posa_tax_inclusive"
+    ):
+        if delivery_note_doc.get("taxes"):
+            for tax in delivery_note_doc.taxes:
+                tax.included_in_print_rate = 1
+
+    delivery_note_doc.save()
+    return delivery_note_doc
+
+
+@frappe.whitelist()
+def submit_delivery_note(delivery_note, data):
+    data = json.loads(data)
+    invoice = json.loads(invoice)
+    delivery_note_doc = frappe.get_doc("Delivery Note", delivery_note.get("name"))
+    delivery_note_doc.update(invoice)
+    if delivery_note.get("posa_delivery_date"):
+        delivery_note_doc.update_stock = 0
+    mop_cash_list = [
+        i.mode_of_payment
+        for i in delivery_note_doc.payments
+        if "cash" in i.mode_of_payment.lower() and i.type == "Cash"
+    ]
+    if len(mop_cash_list) > 0:
+        cash_account = get_bank_cash_account(mop_cash_list[0], delivery_note_doc.company)
+    else:
+        cash_account = {
+            "account": frappe.get_value(
+                "Company", delivery_note_doc.company, "default_cash_account"
+            )
+        }
+
+    # creating advance payment
+    if data.get("credit_change"):
+        advance_payment_entry = frappe.get_doc(
+            {
+                "doctype": "Payment Entry",
+                "mode_of_payment": "Cash",
+                "paid_to": cash_account["account"],
+                "payment_type": "Receive",
+                "party_type": "Customer",
+                "party": delivery_note_doc.get("customer"),
+                "paid_amount": delivery_note_doc.get("credit_change"),
+                "received_amount": delivery_note_doc.get("credit_change"),
+                "company": delivery_note_doc.get("company"),
+            }
+        )
+
+        advance_payment_entry.flags.ignore_permissions = True
+        frappe.flags.ignore_account_permission = True
+        advance_payment_entry.save()
+        advance_payment_entry.submit()
+
+    # calculating cash
+    total_cash = 0
+    if data.get("redeemed_customer_credit"):
+        total_cash = delivery_note_doc.total - float(data.get("redeemed_customer_credit"))
+
+    is_payment_entry = 0
+    if data.get("redeemed_customer_credit"):
+        for row in data.get("customer_credit_dict"):
+            if row["type"] == "Advance" and row["credit_to_redeem"]:
+                advance = frappe.get_doc("Payment Entry", row["credit_origin"])
+
+                advance_payment = {
+                    "reference_type": "Payment Entry",
+                    "reference_name": advance.name,
+                    "remarks": advance.remarks,
+                    "advance_amount": advance.unallocated_amount,
+                    "allocated_amount": row["credit_to_redeem"],
+                }
+
+                delivery_note_doc.append("advances", advance_payment)
+                delivery_note_doc.is_pos = 0
+                is_payment_entry = 1
+
+    payments = []
+
+    if data.get("is_cashback") and not is_payment_entry:
+        for payment in invoice.get("payments"):
+            for i in delivery_note_doc.payments:
+                if i.mode_of_payment == payment["mode_of_payment"]:
+                    i.amount = payment["amount"]
+                    i.base_amount = 0
+                    if i.amount:
+                        payments.append(i)
+                    break
+
+        if len(payments) == 0 and not delivery_note_doc.is_return and delivery_note_doc.is_pos:
+            payments = [delivery_note_doc.payments[0]]
+    else:
+        delivery_note_doc.is_pos = 0
+
+    delivery_note_doc.payments = payments
+    if frappe.get_value("POS Profile", delivery_note_doc.pos_profile, "posa_auto_set_batch"):
+        set_batch_nos(delivery_note_doc, "warehouse", throw=True)
+    set_batch_nos_for_bundels(delivery_note_doc, "warehouse", throw=True)
+    delivery_note_doc.due_date = data.get("due_date")
+    delivery_note_doc.flags.ignore_permissions = True
+    frappe.flags.ignore_account_permission = True
+    delivery_note_doc.posa_is_printed = 1
+    delivery_note_doc.save()
+
+    if frappe.get_value(
+        "POS Profile",
+        delivery_note_doc.pos_profile,
+        "posa_allow_submissions_in_background_job",
+    ):
+        delivery_note_list = frappe.get_all(
+            "Delivery Note",
+            filters={
+                "posa_pos_opening_shift": delivery_note_doc.posa_pos_opening_shift,
+                "docstatus": 0,
+                "posa_is_printed": 1,
+            },
+        )
+        for delivery_note in delivery_note_list:
+            enqueue(
+                method=submit_in_background_job,
+                queue="short",
+                timeout=1000,
+                is_async=True,
+                kwargs={
+                    "delivery_note": delivery_note.name,
+                    "data": data,
+                    "is_payment_entry": is_payment_entry,
+                    "total_cash": total_cash,
+                    "cash_account": cash_account,
+                },
+            )
+    else:
+        delivery_note_doc.submit()
+        redeeming_customer_credit(
+            delivery_note_doc, data, is_payment_entry, total_cash, cash_account
+        )
+
+    return {"name": delivery_note_doc.name, "status": delivery_note_doc.docstatus}
 
 def set_batch_nos_for_bundels(doc, warehouse_field, throw=False):
     """Automatically select `batch_no` for outgoing items in item table"""
