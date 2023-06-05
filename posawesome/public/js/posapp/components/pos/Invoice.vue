@@ -1012,6 +1012,41 @@ export default {
       this.cancel_dialog = false;
     },
 
+    cancel_delivery_note() {
+      const doc = this.get_delivery_note_doc();
+      this.invoiceType = 'Delivery Note';
+      this.invoiceTypes = ['Delivery Note', 'Invoice'];
+      this.posting_date = frappe.datetime.nowdate();
+      if (doc.name && this.pos_profile.posa_allow_delete) {
+        frappe.call({
+          method: 'posawesome.posawesome.api.posapp.delete_delivery_note',
+          args: { delivery_note: doc.name },
+          async: true,
+          callback: function (r) {
+            if (r.message) {
+              evntBus.$emit('show_mesage', {
+                text: r.message,
+                color: 'warning',
+              });
+            }
+          },
+        });
+      }
+      this.items = [];
+      this.posa_offers = [];
+      evntBus.$emit('set_pos_coupons', []);
+      this.posa_coupons = [];
+      this.customer = this.pos_profile.customer;
+      this.delivery_note_doc = '';
+      this.return_doc = '';
+      this.discount_amount = 0;
+      this.additional_discount_percentage = 0;
+      this.delivery_charges_rate = 0;
+      this.selcted_delivery_charges = {};
+      evntBus.$emit('set_customer_readonly', false);
+      this.cancel_dialog = false;
+    },
+
     new_invoice(data = {}) {
       let old_invoice = null;
       evntBus.$emit('set_customer_readonly', false);
@@ -1075,6 +1110,69 @@ export default {
       return old_invoice;
     },
 
+    new_delivery_note(data = {}) {
+      let old_delivery_note = null;
+      evntBus.$emit('set_customer_readonly', false);
+      this.expanded = [];
+      this.posa_offers = [];
+      evntBus.$emit('set_pos_coupons', []);
+      this.posa_coupons = [];
+      this.return_doc = '';
+      const doc = this.get_delivery_note_doc();
+      if (doc.name) {
+        old_delivery_note = this.update_delivery_note(doc);
+      } else {
+        if (doc.items.length) {
+          old_delivery_note = this.update_delivery_note(doc);
+        }
+      }
+      if (!data.name && !data.is_return) {
+        this.items = [];
+        this.customer = this.pos_profile.customer;
+        this.delivery_note_doc = '';
+        this.discount_amount = 0;
+        this.additional_discount_percentage = 0;
+        this.invoiceType = 'Delivery Note';
+        this.invoiceTypes = ['Delivery Note', 'Invoice'];
+      } else {
+        if (data.is_return) {
+          evntBus.$emit('set_customer_readonly', true);
+          this.invoiceType = 'Return';
+          this.invoiceTypes = ['Return'];
+        }
+        this.delivery_note_doc = data;
+        this.items = data.items;
+        this.update_items_details(this.items);
+        this.posa_offers = data.posa_offers || [];
+        this.items.forEach((item) => {
+          if (!item.posa_row_id) {
+            item.posa_row_id = this.makeid(20);
+          }
+          if (item.batch_no) {
+            this.set_batch_qty(item, item.batch_no);
+          }
+        });
+        this.customer = data.customer;
+        this.posting_date = data.posting_date || frappe.datetime.nowdate();
+        this.discount_amount = data.discount_amount;
+        this.additional_discount_percentage =
+          data.additional_discount_percentage;
+        this.items.forEach((item) => {
+          if (item.serial_no) {
+            item.serial_no_selected = [];
+            const serial_list = item.serial_no.split('\n');
+            serial_list.forEach((element) => {
+              if (element.length) {
+                item.serial_no_selected.push(element);
+              }
+            });
+            item.serial_no_selected_count = item.serial_no_selected.length;
+          }
+        });
+      }
+      return old_delivery_note;
+    },
+
     get_invoice_doc() {
       let doc = {};
       if (this.invoice_doc.name) {
@@ -1108,7 +1206,70 @@ export default {
       return doc;
     },
 
+    get_delivery_note_doc() {
+      let doc = {};
+      if (this.delivery_note_doc.name) {
+        doc = { ...this.delivery_note_doc };
+      }
+      doc.doctype = 'Delivery Note';
+      // doc.is_pos = 1;
+      doc.ignore_pricing_rule = 1;
+      doc.company = doc.company || this.pos_profile.company;
+      doc.pos_profile = doc.pos_profile || this.pos_profile.name;
+      doc.campaign = doc.campaign || this.pos_profile.campaign;
+      doc.currency = doc.currency || this.pos_profile.currency;
+      doc.naming_series = doc.naming_series || this.pos_profile.naming_series;
+      doc.customer = this.customer;
+      doc.items = this.get_delivery_note_items();
+      doc.total = this.subtotal;
+      doc.discount_amount = flt(this.discount_amount);
+      doc.additional_discount_percentage = flt(
+        this.additional_discount_percentage
+      );
+      doc.posa_pos_opening_shift = this.pos_opening_shift.name;
+      doc.payments = this.get_payments();
+      doc.taxes = [];
+      doc.is_return = this.delivery_note_doc.is_return;
+      doc.return_against = this.delivery_note_doc.return_against;
+      doc.posa_offers = this.posa_offers;
+      doc.posa_coupons = this.posa_coupons;
+      doc.posa_delivery_charges = this.selcted_delivery_charges.name;
+      doc.posa_delivery_charges_rate = this.delivery_charges_rate || 0;
+      doc.posting_date = this.posting_date;
+      return doc;
+    },
+
     get_invoice_items() {
+      const items_list = [];
+      this.items.forEach((item) => {
+        const new_item = {
+          item_code: item.item_code,
+          posa_row_id: item.posa_row_id,
+          posa_offers: item.posa_offers,
+          posa_offer_applied: item.posa_offer_applied,
+          posa_is_offer: item.posa_is_offer,
+          posa_is_replace: item.posa_is_replace,
+          is_free_item: item.is_free_item,
+          qty: item.qty,
+          rate: item.rate,
+          uom: item.uom,
+          amount: item.qty * item.rate,
+          conversion_factor: item.conversion_factor,
+          serial_no: item.serial_no,
+          discount_percentage: item.discount_percentage,
+          discount_amount: item.discount_amount,
+          batch_no: item.batch_no,
+          posa_notes: item.posa_notes,
+          posa_delivery_date: item.posa_delivery_date,
+          price_list_rate: item.price_list_rate,
+        };
+        items_list.push(new_item);
+      });
+
+      return items_list;
+    },
+
+    get_delivery_note_items() {
       const items_list = [];
       this.items.forEach((item) => {
         const new_item = {
@@ -1167,6 +1328,22 @@ export default {
       });
       return this.invoice_doc;
     },
+    update_delivery_note(doc) {
+      const vm = this;
+      frappe.call({
+        method: 'posawesome.posawesome.api.posapp.update_delivery_note',
+        args: {
+          data: doc,
+        },
+        async: false,
+        callback: function (r) {
+          if (r.message) {
+            vm.invoice_doc = r.message;
+          }
+        },
+      });
+      return this.invoice_doc;
+    },
 
     proces_invoice() {
       const doc = this.get_invoice_doc();
@@ -1176,6 +1353,15 @@ export default {
         return this.update_invoice(doc);
       }
     },
+
+    proces_delivery_note() {
+      const doc = this.get_delivery_note_doc();
+      if (doc.name) {
+        return this.update_delivery_note(doc);
+      } else {
+        return this.update_delivery_note(doc);
+      }
+    },   
 
     show_payment() {
       if (!this.customer) {
@@ -1326,6 +1512,22 @@ export default {
       const vm = this;
       frappe.call({
         method: 'posawesome.posawesome.api.posapp.get_draft_invoices',
+        args: {
+          pos_opening_shift: this.pos_opening_shift.name,
+        },
+        async: false,
+        callback: function (r) {
+          if (r.message) {
+            evntBus.$emit('open_drafts', r.message);
+          }
+        },
+      });
+    },
+
+    get_draft_delivery_note() {
+      const vm = this;
+      frappe.call({
+        method: 'posawesome.posawesome.api.posapp.get_draft_delivery_note',
         args: {
           pos_opening_shift: this.pos_opening_shift.name,
         },

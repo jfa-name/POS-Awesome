@@ -37,6 +37,7 @@ app_include_js = [
 doctype_js = {
     "POS Profile": "posawesome/api/pos_profile.js",
     "Sales Invoice": "posawesome/api/invoice.js",
+    "Delivery Note": "posawesome/api/delivery_note.js",
     "Company": "posawesome/api/company.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
@@ -97,6 +98,11 @@ doc_events = {
         "before_submit": "posawesome.posawesome.api.invoice.before_submit",
         "before_cancel": "posawesome.posawesome.api.invoice.before_cancel",
     },
+    "Delivery Note": {
+        "validate": "posawesome.posawesome.api.delivery_note.validate",
+        "before_submit": "posawesome.posawesome.api.delivery_note.before_submit",
+        "before_cancel": "posawesome.posawesome.api.delivery_note.before_cancel",
+    }
     "Customer": {
         "validate": "posawesome.posawesome.api.customer.validate",
         "after_insert": "posawesome.posawesome.api.customer.after_insert",
