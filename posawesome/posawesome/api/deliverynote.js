@@ -1,7 +1,7 @@
-// Copyright (c) 20201 Youssef Restom and contributors
+// Copyright (c) 2023 Felipe Acosta and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Sales Invoice', {
+frappe.ui.form.on('Delivery Note', {
     setup: function (frm) {
         frm.set_query("posa_delivery_charges", function (doc) {
             return {

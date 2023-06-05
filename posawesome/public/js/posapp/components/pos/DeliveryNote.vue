@@ -4,12 +4,12 @@
       <v-card>
         <v-card-title class="text-h5">
           <span class="headline primary--text">{{
-            __('Cancel Current Invoice ?')
+            __('Cancel Current Delivery Note ?')
           }}</span>
         </v-card-title>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="error" @click="cancel_invoice">
+          <v-btn color="error" @click="cancel_deliverynote">
             {{ __('Cancel') }}
           </v-btn>
           <v-btn color="warning" @click="cancel_dialog = false">
@@ -24,30 +24,30 @@
     >
       <v-row align="center" class="items px-2 py-1">
         <v-col
-          v-if="pos_profile.posa_allow_sales_order"
+          v-if="pos_profile.posa_allow_delivery_note"
           cols="9"
           class="pb-2 pr-0"
         >
           <Customer></Customer>
         </v-col>
         <v-col
-          v-if="!pos_profile.posa_allow_sales_order"
+          v-if="!pos_profile.posa_allow_delivery_note"
           cols="12"
           class="pb-2"
         >
           <Customer></Customer>
         </v-col>
-        <v-col v-if="pos_profile.posa_allow_sales_order" cols="3" class="pb-2">
+        <v-col v-if="pos_profile.posa_allow_delivery_note" cols="3" class="pb-2">
           <v-select
             dense
             hide-details
             outlined
             color="primary"
             background-color="white"
-            :items="invoiceTypes"
+            :items="deliverynoteTypes"
             :label="frappe._('Type')"
-            v-model="invoiceType"
-            :disabled="invoiceType == 'Return'"
+            v-model="deliverynoteType"
+            :disabled="deliverynoteType == 'Return'"
           ></v-select>
         </v-col>
       </v-row>
@@ -116,8 +116,8 @@
           class="pb-2"
         >
           <v-menu
-            ref="invoice_posting_date"
-            v-model="invoice_posting_date"
+            ref="deliverynote_posting_date"
+            v-model="deliverynote_posting_date"
             :close-on-content-click="false"
             transition="scale-transition"
             dense
@@ -146,7 +146,7 @@
                 frappe.datetime.add_days(frappe.datetime.now_date(true), -7)
               "
               :max="frappe.datetime.add_days(frappe.datetime.now_date(true), 7)"
-              @input="invoice_posting_date = false"
+              @input="deliverynote_posting_date = false"
             >
             </v-date-picker>
           </v-menu>
@@ -257,7 +257,7 @@
                       hide-details
                       @change="calc_uom(item, $event)"
                       :disabled="
-                        !!invoice_doc.is_return ||
+                        !!deliverynote_doc.is_return ||
                         !!item.posa_is_offer ||
                         !!item.posa_is_replace
                       "
@@ -274,7 +274,7 @@
                       hide-details
                       v-model.number="item.rate"
                       type="number"
-                      :prefix="invoice_doc.currency"
+                      :prefix="deliverynote_doc.currency"
                       @change="calc_prices(item, $event)"
                       id="rate"
                       :disabled="
@@ -282,7 +282,7 @@
                         !!item.posa_is_replace ||
                         !!item.posa_offer_applied ||
                         !pos_profile.posa_allow_user_to_edit_rate ||
-                        !!invoice_doc.is_return
+                        !!deliverynote_doc.is_return
                           ? true
                           : false
                       "
@@ -305,7 +305,7 @@
                         !!item.posa_is_replace ||
                         item.posa_offer_applied ||
                         !pos_profile.posa_allow_user_to_edit_item_discount ||
-                        !!invoice_doc.is_return
+                        !!deliverynote_doc.is_return
                           ? true
                           : false
                       "
@@ -321,7 +321,7 @@
                       hide-details
                       v-model.number="item.discount_amount"
                       type="number"
-                      :prefix="invoice_doc.currency"
+                      :prefix="deliverynote_doc.currency"
                       @change="calc_prices(item, $event)"
                       id="discount_amount"
                       :disabled="
@@ -329,7 +329,7 @@
                         !!item.posa_is_replace ||
                         !!item.posa_offer_applied ||
                         !pos_profile.posa_allow_user_to_edit_item_discount ||
-                        !!invoice_doc.is_return
+                        !!deliverynote_doc.is_return
                           ? true
                           : false
                       "
@@ -346,7 +346,7 @@
                       v-model="item.price_list_rate"
                       type="number"
                       disabled
-                      :prefix="invoice_doc.currency"
+                      :prefix="deliverynote_doc.currency"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="4">
@@ -507,8 +507,8 @@
                   <v-col
                     cols="4"
                     v-if="
-                      pos_profile.posa_allow_sales_order &&
-                      invoiceType == 'Order'
+                      pos_profile.posa_allow_delivery_note &&
+                      deliverynoteType == 'Entry'
                     "
                   >
                     <v-menu
@@ -685,7 +685,7 @@
                 class="pa-0"
                 color="warning"
                 dark
-                @click="get_draft_invoices"
+                @click="get_draft_deliverynotes"
                 >{{ __('Held') }}</v-btn
               >
             </v-col>
@@ -716,7 +716,7 @@
                 class="pa-0"
                 color="accent"
                 dark
-                @click="new_invoice"
+                @click="new_deliverynote"
                 >{{ __('Save/New') }}</v-btn
               >
             </v-col>
@@ -731,7 +731,7 @@
               >
             </v-col>
             <v-col
-              v-if="pos_profile.posa_allow_print_draft_invoices"
+              v-if="pos_profile.posa_allow_print_draft_deliverynotes"
               cols="6"
               class="pa-1"
             >
@@ -739,7 +739,7 @@
                 block
                 class="pa-0"
                 color="primary"
-                @click="print_draft_invoice"
+                @click="print_draft_deliverynote"
                 dark
                 >{{ __('Print Draft') }}</v-btn
               >
@@ -761,7 +761,7 @@ export default {
       pos_profile: '',
       pos_opening_shift: '',
       stock_settings: '',
-      invoice_doc: '',
+      deliverynote_doc: '',
       return_doc: '',
       customer: '',
       customer_info: '',
@@ -774,8 +774,8 @@ export default {
       posa_coupons: [],
       allItems: [],
       discount_percentage_offer_name: null,
-      invoiceTypes: ['Invoice', 'Order'],
-      invoiceType: 'Invoice',
+      deliverynoteTypes: ['Delivery Note', 'Entry'],
+      deliverynoteType: 'Delivery Note',
       itemsPerPage: 1000,
       expanded: [],
       singleExpand: true,
@@ -786,7 +786,7 @@ export default {
       delivery_charges: [],
       delivery_charges_rate: 0,
       selcted_delivery_charges: {},
-      invoice_posting_date: false,
+      deliverynote_posting_date: false,
       posting_date: frappe.datetime.nowdate(),
       items_headers: [
         {
@@ -977,15 +977,15 @@ export default {
       return new_item;
     },
 
-    cancel_invoice() {
-      const doc = this.get_invoice_doc();
-      this.invoiceType = 'Invoice';
-      this.invoiceTypes = ['Invoice', 'Order'];
+    cancel_deliverynote() {
+      const doc = this.get_deliverynote_doc();
+      this.deliverynoteType = 'Delivery Note';
+      this.deliverynoteTypes = ['Delivery Note', 'Entry'];
       this.posting_date = frappe.datetime.nowdate();
       if (doc.name && this.pos_profile.posa_allow_delete) {
         frappe.call({
-          method: 'posawesome.posawesome.api.posapp.delete_invoice',
-          args: { invoice: doc.name },
+          method: 'posawesome.posawesome.api.posapp.delete_deliverynote',
+          args: { deliverynote: doc.name },
           async: true,
           callback: function (r) {
             if (r.message) {
@@ -1002,7 +1002,7 @@ export default {
       evntBus.$emit('set_pos_coupons', []);
       this.posa_coupons = [];
       this.customer = this.pos_profile.customer;
-      this.invoice_doc = '';
+      this.deliverynote_doc = '';
       this.return_doc = '';
       this.discount_amount = 0;
       this.additional_discount_percentage = 0;
@@ -1012,37 +1012,37 @@ export default {
       this.cancel_dialog = false;
     },
 
-    new_invoice(data = {}) {
-      let old_invoice = null;
+    new_deliverynote(data = {}) {
+      let old_deliverynote = null;
       evntBus.$emit('set_customer_readonly', false);
       this.expanded = [];
       this.posa_offers = [];
       evntBus.$emit('set_pos_coupons', []);
       this.posa_coupons = [];
       this.return_doc = '';
-      const doc = this.get_invoice_doc();
+      const doc = this.get_deliverynote_doc();
       if (doc.name) {
-        old_invoice = this.update_invoice(doc);
+        old_deliverynote = this.update_deliverynote(doc);
       } else {
         if (doc.items.length) {
-          old_invoice = this.update_invoice(doc);
+          old_deliverynote = this.update_deliverynote(doc);
         }
       }
       if (!data.name && !data.is_return) {
         this.items = [];
         this.customer = this.pos_profile.customer;
-        this.invoice_doc = '';
+        this.deliverynote_doc = '';
         this.discount_amount = 0;
         this.additional_discount_percentage = 0;
-        this.invoiceType = 'Invoice';
-        this.invoiceTypes = ['Invoice', 'Order'];
+        this.deliverynoteType = 'Delivery Note';
+        this.deliverynoteTypes = ['Delivery Note', 'Entry'];
       } else {
         if (data.is_return) {
           evntBus.$emit('set_customer_readonly', true);
-          this.invoiceType = 'Return';
-          this.invoiceTypes = ['Return'];
+          this.deliverynoteType = 'Return';
+          this.deliverynoteTypes = ['Return'];
         }
-        this.invoice_doc = data;
+        this.deliverynote_doc = data;
         this.items = data.items;
         this.update_items_details(this.items);
         this.posa_offers = data.posa_offers || [];
@@ -1072,15 +1072,15 @@ export default {
           }
         });
       }
-      return old_invoice;
+      return old_deliverynote;
     },
 
-    get_invoice_doc() {
+    get_deliverynote_doc() {
       let doc = {};
-      if (this.invoice_doc.name) {
-        doc = { ...this.invoice_doc };
+      if (this.deliverynote_doc.name) {
+        doc = { ...this.deliverynote_doc };
       }
-      doc.doctype = 'Sales Invoice';
+      doc.doctype = 'Delivery Note';
       doc.is_pos = 1;
       doc.ignore_pricing_rule = 1;
       doc.company = doc.company || this.pos_profile.company;
@@ -1089,7 +1089,7 @@ export default {
       doc.currency = doc.currency || this.pos_profile.currency;
       doc.naming_series = doc.naming_series || this.pos_profile.naming_series;
       doc.customer = this.customer;
-      doc.items = this.get_invoice_items();
+      doc.items = this.get_deliverynote_items();
       doc.total = this.subtotal;
       doc.discount_amount = flt(this.discount_amount);
       doc.additional_discount_percentage = flt(
@@ -1098,8 +1098,8 @@ export default {
       doc.posa_pos_opening_shift = this.pos_opening_shift.name;
       doc.payments = this.get_payments();
       doc.taxes = [];
-      doc.is_return = this.invoice_doc.is_return;
-      doc.return_against = this.invoice_doc.return_against;
+      doc.is_return = this.deliverynote_doc.is_return;
+      doc.return_against = this.deliverynote_doc.return_against;
       doc.posa_offers = this.posa_offers;
       doc.posa_coupons = this.posa_coupons;
       doc.posa_delivery_charges = this.selcted_delivery_charges.name;
@@ -1108,7 +1108,7 @@ export default {
       return doc;
     },
 
-    get_invoice_items() {
+    get_deliverynote_items() {
       const items_list = [];
       this.items.forEach((item) => {
         const new_item = {
@@ -1151,29 +1151,29 @@ export default {
       return payments;
     },
 
-    update_invoice(doc) {
+    update_deliverynote(doc) {
       const vm = this;
       frappe.call({
-        method: 'posawesome.posawesome.api.posapp.update_invoice',
+        method: 'posawesome.posawesome.api.posapp.update_deliverynote',
         args: {
           data: doc,
         },
         async: false,
         callback: function (r) {
           if (r.message) {
-            vm.invoice_doc = r.message;
+            vm.deliverynote_doc = r.message;
           }
         },
       });
-      return this.invoice_doc;
+      return this.deliverynote_doc;
     },
 
-    proces_invoice() {
-      const doc = this.get_invoice_doc();
+    proces_deliverynote() {
+      const doc = this.get_deliverynote_doc();
       if (doc.name) {
-        return this.update_invoice(doc);
+        return this.update_deliverynote(doc);
       } else {
-        return this.update_invoice(doc);
+        return this.update_deliverynote(doc);
       }
     },
 
@@ -1196,8 +1196,8 @@ export default {
         return;
       }
       evntBus.$emit('show_payment', 'true');
-      const invoice_doc = this.proces_invoice();
-      evntBus.$emit('send_invoice_doc_payment', invoice_doc);
+      const deliverynote_doc = this.proces_deliverynote();
+      evntBus.$emit('send_deliverynote_doc_payment', deliverynote_doc);
     },
 
     validate() {
@@ -1205,7 +1205,7 @@ export default {
       this.items.forEach((item) => {
         if (this.stock_settings.allow_negative_stock != 1) {
           if (
-            this.invoiceType == 'Invoice' &&
+            this.deliverynoteType == 'Invoice' &&
             ((item.is_stock_item && item.stock_qty && !item.actual_qty) ||
               (item.is_stock_item && item.stock_qty > item.actual_qty))
           ) {
@@ -1234,7 +1234,7 @@ export default {
         }
         if (item.has_serial_no) {
           if (
-            !this.invoice_doc.is_return &&
+            !this.deliverynote_doc.is_return &&
             (!item.serial_no_selected ||
               item.stock_qty != item.serial_no_selected.length)
           ) {
@@ -1271,7 +1271,7 @@ export default {
             value = false;
           }
         }
-        if (this.invoice_doc.is_return) {
+        if (this.deliverynote_doc.is_return) {
           if (this.subtotal >= 0) {
             evntBus.$emit('show_mesage', {
               text: __(`Return Invoice Total Not Correct`),
@@ -1298,7 +1298,7 @@ export default {
             if (!return_item) {
               evntBus.$emit('show_mesage', {
                 text: __(
-                  `The item {0} cannot be returned because it is not in the invoice {1}`,
+                  `The item {0} cannot be returned because it is not in the deliverynote {1}`,
                   [item.item_name, this.return_doc.name]
                 ),
                 color: 'error',
@@ -1322,10 +1322,10 @@ export default {
       return value;
     },
 
-    get_draft_invoices() {
+    get_draft_deliverynotes() {
       const vm = this;
       frappe.call({
-        method: 'posawesome.posawesome.api.posapp.get_draft_invoices',
+        method: 'posawesome.posawesome.api.posapp.get_draft_deliverynotes',
         args: {
           pos_opening_shift: this.pos_opening_shift.name,
         },
@@ -1383,18 +1383,18 @@ export default {
         method: 'posawesome.posawesome.api.posapp.get_item_detail',
         args: {
           warehouse: this.pos_profile.warehouse,
-          doc: this.get_invoice_doc(),
+          doc: this.get_deliverynote_doc(),
           price_list: this.pos_profile.price_list,
           item: {
             item_code: item.item_code,
             customer: this.customer,
-            doctype: 'Sales Invoice',
-            name: 'New Sales Invoice 1',
+            doctype: 'Delivery Note',
+            name: 'New Delivery Note 1',
             company: this.pos_profile.company,
             conversion_rate: 1,
             qty: item.qty,
             price_list_rate: item.price_list_rate,
-            child_docname: 'New Sales Invoice Item 1',
+            child_docname: 'New Delivery Note Item 1',
             cost_center: this.pos_profile.cost_center,
             currency: this.pos_profile.currency,
             // plc_conversion_rate: 1,
@@ -1980,18 +1980,18 @@ export default {
       evntBus.$emit('update_pos_offers', offers);
     },
 
-    updateInvoiceOffers(offers) {
-      this.posa_offers.forEach((invoiceOffer) => {
+    updatedeliverynoteOffers(offers) {
+      this.posa_offers.forEach((deliverynoteOffer) => {
         const existOffer = offers.find(
-          (offer) => invoiceOffer.row_id == offer.row_id
+          (offer) => deliverynoteOffer.row_id == offer.row_id
         );
         if (!existOffer) {
-          this.removeApplyOffer(invoiceOffer);
+          this.removeApplyOffer(deliverynoteOffer);
         }
       });
       offers.forEach((offer) => {
         const existOffer = this.posa_offers.find(
-          (invoiceOffer) => invoiceOffer.row_id == offer.row_id
+          (deliverynoteOffer) => deliverynoteOffer.row_id == offer.row_id
         );
         if (existOffer) {
           existOffer.items = JSON.stringify(offer.items);
@@ -2092,38 +2092,38 @@ export default {
       });
     },
 
-    removeApplyOffer(invoiceOffer) {
-      if (invoiceOffer.offer === 'Item Price') {
-        this.RemoveOnPrice(invoiceOffer);
+    removeApplyOffer(deliverynoteOffer) {
+      if (deliverynoteOffer.offer === 'Item Price') {
+        this.RemoveOnPrice(deliverynoteOffer);
         const index = this.posa_offers.findIndex(
-          (el) => el.row_id === invoiceOffer.row_id
+          (el) => el.row_id === deliverynoteOffer.row_id
         );
         this.posa_offers.splice(index, 1);
       }
-      if (invoiceOffer.offer === 'Give Product') {
+      if (deliverynoteOffer.offer === 'Give Product') {
         const item_to_remove = this.items.find(
-          (item) => item.posa_row_id == invoiceOffer.give_item_row_id
+          (item) => item.posa_row_id == deliverynoteOffer.give_item_row_id
         );
         const index = this.posa_offers.findIndex(
-          (el) => el.row_id === invoiceOffer.row_id
+          (el) => el.row_id === deliverynoteOffer.row_id
         );
         this.posa_offers.splice(index, 1);
         this.remove_item(item_to_remove);
       }
-      if (invoiceOffer.offer === 'Grand Total') {
-        this.RemoveOnTotal(invoiceOffer);
+      if (deliverynoteOffer.offer === 'Grand Total') {
+        this.RemoveOnTotal(deliverynoteOffer);
         const index = this.posa_offers.findIndex(
-          (el) => el.row_id === invoiceOffer.row_id
+          (el) => el.row_id === deliverynoteOffer.row_id
         );
         this.posa_offers.splice(index, 1);
       }
-      if (invoiceOffer.offer === 'Loyalty Point') {
+      if (deliverynoteOffer.offer === 'Loyalty Point') {
         const index = this.posa_offers.findIndex(
-          (el) => el.row_id === invoiceOffer.row_id
+          (el) => el.row_id === deliverynoteOffer.row_id
         );
         this.posa_offers.splice(index, 1);
       }
-      this.deleteOfferFromItems(invoiceOffer);
+      this.deleteOfferFromItems(deliverynoteOffer);
     },
 
     applyNewOffer(offer) {
@@ -2388,15 +2388,15 @@ export default {
         }, 0);
       }
     },
-    load_print_page(invoice_name) {
+    load_print_page(deliverynote_name) {
       const print_format =
         this.pos_profile.print_format_for_online ||
         this.pos_profile.print_format;
       const letter_head = this.pos_profile.letter_head || 0;
       const url =
         frappe.urllib.get_base_url() +
-        '/printview?doctype=Sales%20Invoice&name=' +
-        invoice_name +
+        '/printview?doctype=Delivery%20Note&name=' +
+        deliverynote_name +
         '&trigger_print=1' +
         '&format=' +
         print_format +
@@ -2414,22 +2414,22 @@ export default {
       );
     },
 
-    print_draft_invoice() {
-      if (!this.pos_profile.posa_allow_print_draft_invoices) {
+    print_draft_deliverynote() {
+      if (!this.pos_profile.posa_allow_print_draft_deliverynotes) {
         evntBus.$emit('show_mesage', {
-          text: __(`You are not allowed to print draft invoices`),
+          text: __(`You are not allowed to print draft deliverynotes`),
           color: 'error',
         });
         return;
       }
-      let invoice_name = this.invoice_doc.name;
+      let deliverynote_name = this.deliverynote_doc.name;
       frappe.run_serially([
         () => {
-          const invoice_doc = this.new_invoice();
-          invoice_name = invoice_doc.name ? invoice_doc.name : invoice_name;
+          const deliverynote_doc = this.new_deliverynote();
+          deliverynote_name = deliverynote_doc.name ? deliverynote_doc.name : deliverynote_name;
         },
         () => {
-          this.load_print_page(invoice_name);
+          this.load_print_page(deliverynote_name);
         },
       ]);
     },
@@ -2487,9 +2487,9 @@ export default {
         frappe.defaults.get_default('float_precision') || 2;
       this.currency_precision =
         frappe.defaults.get_default('currency_precision') || 2;
-      this.invoiceType = this.pos_profile.posa_default_sales_order
-        ? 'Order'
-        : 'Invoice';
+      this.deliverynoteType = this.pos_profile.posa_default_delivery_note
+        ? 'Entry'
+        : 'deliverynote';
     });
     evntBus.$on('add_item', (item) => {
       this.add_item(item);
@@ -2500,21 +2500,21 @@ export default {
     evntBus.$on('fetch_customer_details', () => {
       this.fetch_customer_details();
     });
-    evntBus.$on('new_invoice', () => {
-      this.invoice_doc = '';
-      this.cancel_invoice();
+    evntBus.$on('new_deliverynote', () => {
+      this.deliverynote_doc = '';
+      this.cancel_deliverynote();
     });
-    evntBus.$on('load_invoice', (data) => {
-      this.new_invoice(data);
+    evntBus.$on('load_deliverynote', (data) => {
+      this.new_deliverynote(data);
       evntBus.$emit('set_pos_coupons', data.posa_coupons);
     });
     evntBus.$on('set_offers', (data) => {
       this.posOffers = data;
     });
-    evntBus.$on('update_invoice_offers', (data) => {
-      this.updateInvoiceOffers(data);
+    evntBus.$on('update_deliverynote_offers', (data) => {
+      this.updatedeliverynoteOffers(data);
     });
-    evntBus.$on('update_invoice_coupons', (data) => {
+    evntBus.$on('update_deliverynote_coupons', (data) => {
       this.posa_coupons = data;
       this.handelOffers();
     });
@@ -2524,8 +2524,8 @@ export default {
         this.update_item_detail(item);
       });
     });
-    evntBus.$on('load_return_invoice', (data) => {
-      this.new_invoice(data.invoice_doc);
+    evntBus.$on('load_return_deliverynote', (data) => {
+      this.new_deliverynote(data.deliverynote_doc);
       this.discount_amount = -data.return_doc.discount_amount;
       this.additional_discount_percentage =
         -data.return_doc.additional_discount_percentage;
@@ -2573,8 +2573,8 @@ export default {
         this.$forceUpdate();
       },
     },
-    invoiceType() {
-      evntBus.$emit('update_invoice_type', this.invoiceType);
+    deliverynoteType() {
+      evntBus.$emit('update_deliverynote_type', this.deliverynoteType);
     },
     discount_amount() {
       if (!this.discount_amount || this.discount_amount == 0) {
