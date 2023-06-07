@@ -36,6 +36,7 @@ app_include_js = [
 # include js in doctype views
 doctype_js = {
     "POS Profile": "posawesome/api/pos_profile.js",
+    "Sales Invoice": "posawesome/api/invoice.js",
     "Delivery Note": "posawesome/api/deliverynote.js",
     "Company": "posawesome/api/company.js",
 }
@@ -92,9 +93,13 @@ doctype_js = {
 # Hook on document methods and events
 
 doc_events = {
+    "Sales Invoice": {
+        "validate": "posawesome.posawesome.api.invoice.validate",
+        "before_submit": "posawesome.posawesome.api.invoice.before_submit",
+        "before_cancel": "posawesome.posawesome.api.invoice.before_cancel",
+    },
     "Delivery Note": {
         "validate": "posawesome.posawesome.api.deliverynote.validate",
-#        "before_submit": "posawesome.posawesome.api.deliverynote.before_submit",
         "before_cancel": "posawesome.posawesome.api.deliverynote.before_cancel",
     },
     "Customer": {
@@ -155,6 +160,7 @@ fixtures = [
                 "name",
                 "in",
                 (
+                    "Sales Invoice-posa_pos_opening_shift",
                     "Delivery Note-posa_pos_opening_shift",
                     "Item Barcode-posa_uom",
                     "POS Profile-posa_pos_awesome_settings",
@@ -172,6 +178,7 @@ fixtures = [
                     "POS Profile-posa_allow_return",
                     "POS Profile-posa_col_1",
                     "POS Profile-posa_scale_barcode_start",
+                    "Sales Invoice-posa_is_printed",
                     "Delivery Note-posa_is_printed",
                     "POS Profile-posa_local_storage",
                     "POS Profile-posa_cash_mode_of_payment",
@@ -180,6 +187,13 @@ fixtures = [
                     "POS Profile-posa_hide_closing_shift",
                     "Customer-posa_discount",
                     "POS Profile-posa_apply_customer_discount",
+                    "Sales Invoice-posa_offers",
+                    "Sales Invoice-posa_coupons",
+                    "Sales Invoice Item-posa_offers",
+                    "Sales Invoice Item-posa_row_id",
+                    "Sales Invoice Item-posa_offer_applied",
+                    "Sales Invoice Item-posa_is_offer",
+                    "Sales Invoice Item-posa_is_replace",
                     "Delivery Note-posa_offers",
                     "Delivery Note-posa_coupons",
                     "Delivery Note Item-posa_offers",
@@ -189,6 +203,12 @@ fixtures = [
                     "Delivery Note Item-posa_is_replace",
                     "POS Profile-posa_auto_set_batch",
                     "POS Profile-posa_search_serial_no",
+                    "Sales Invoice-posa_additional_notes_section",
+                    "Sales Invoice-posa_notes",
+                    "Sales Invoice-posa_column_break_111",
+                    "Sales Invoice-posa_delivery_date",
+                    "Sales Invoice Item-posa_notes",
+                    "Sales Invoice Item-posa_delivery_date",
                     "Delivery Note-posa_additional_notes_section",
                     "Delivery Note-posa_notes",
                     "Delivery Note-posa_column_break_111",
@@ -228,6 +248,8 @@ fixtures = [
                     "POS Profile-posa_allow_zero_rated_items",
                     "POS Profile-posa_allow_print_draft_invoices",
                     "Address-posa_delivery_charges",
+                    "Sales Invoice-posa_delivery_charges",
+                    "Sales Invoice-posa_delivery_charges_rate",
                     "Delivery Note-posa_delivery_charges",
                     "Delivery Note-posa_delivery_charges_rate",
                     "POS Profile-posa_auto_set_delivery_charges",
@@ -245,6 +267,6 @@ fixtures = [
     },
     {
         "doctype": "Property Setter",
-        "filters": [["name", "in", ("Delivery Note-posa_pos_opening_shift-no_copy")]],
+        "filters": [["name", "in", ("Sales Invoice-posa_pos_opening_shift-no_copy")]],
     },
 ]

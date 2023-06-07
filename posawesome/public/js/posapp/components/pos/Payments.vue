@@ -350,7 +350,7 @@
           </v-col>
           <v-col
             cols="6"
-            v-if="pos_profile.posa_allow_delivery_note && deliverynoteType == 'Entry'"
+            v-if="pos_profile.posa_allow_delivery_note"
           >
             <v-menu
               ref="order_delivery_date"
@@ -1248,7 +1248,6 @@ export default {
     vaildatPayment() {
       if (this.pos_profile.posa_allow_delivery_note) {
         if (
-          this.deliverynoteType == 'Entry' &&
           !this.deliverynote_doc.posa_delivery_date
         ) {
           return true;

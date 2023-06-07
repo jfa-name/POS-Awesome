@@ -56,6 +56,7 @@
 
       <v-col xl="7" lg="7" md="7" sm="7" cols="12" class="pos">
         <DeliveryNote></DeliveryNote>
+        <Invoice></Invoice>
       </v-col>
     </v-row>
   </div>
@@ -64,6 +65,7 @@
 <script>
 import { evntBus } from '../../bus';
 import ItemsSelector from './ItemsSelector.vue';
+import Invoice from './Invoice.vue';
 import DeliveryNote from './DeliveryNote.vue';
 import OpeningDialog from './OpeningDialog.vue';
 import Payments from './Payments.vue';
@@ -91,6 +93,7 @@ export default {
 
   components: {
     ItemsSelector,
+    Invoice,
     DeliveryNote,
     OpeningDialog,
     Payments,
