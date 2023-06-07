@@ -1150,7 +1150,6 @@ export default {
       });
       return payments;
     },
-
     update_deliverynote(doc) {
       const vm = this;
       frappe.call({
@@ -1162,6 +1161,8 @@ export default {
         callback: function (r) {
           if (r.message) {
             vm.deliverynote_doc = r.message;
+            // Make sure to set the `payments` property
+            vm.deliverynote_doc.payments = []; // Initialize as an empty array
           }
         },
       });
@@ -1197,7 +1198,20 @@ export default {
       }
       evntBus.$emit('show_payment', 'true');
       const deliverynote_doc = this.proces_deliverynote();
-      evntBus.$emit('send_deliverynote_doc_payment', deliverynote_doc);
+      this.send_deliverynote_doc_payment(deliverynote_doc)
+        .then((updatedDeliverynoteDoc) => {
+          evntBus.$emit('send_deliverynote_doc_payment', updatedDeliverynoteDoc);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    },
+    
+    send_deliverynote_doc_payment(deliverynote_doc) {
+      return new Promise((resolve) => {
+        evntBus.$emit('send_deliverynote_doc_payment', deliverynote_doc);
+        resolve(deliverynote_doc);
+      });
     },
 
     validate() {
@@ -2388,10 +2402,11 @@ export default {
         }, 0);
       }
     },
+    
     load_print_page(deliverynote_name) {
       const print_format =
-        this.pos_profile.print_format_for_online ||
-        this.pos_profile.print_format;
+      this.pos_profile.print_format_for_online ||
+      this.pos_profile.print_format;
       const letter_head = this.pos_profile.letter_head || 0;
       const url =
         frappe.urllib.get_base_url() +

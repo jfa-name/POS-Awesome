@@ -7,7 +7,8 @@ import json
 import frappe
 from frappe.utils import nowdate, flt, cstr
 from frappe import _
-from erpnext.accounts.doctype.delivery_note.delivery_note import get_bank_cash_account
+# from erpnext.stock.doctype.delivery_note.delivery_note
+from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
 from erpnext.stock.get_item_details import get_item_details
 from erpnext.accounts.doctype.pos_profile.pos_profile import get_item_groups
 from frappe.utils.background_jobs import enqueue
@@ -420,20 +421,27 @@ def update_deliverynote(data):
     deliverynote_doc.save()
     return deliverynote_doc
 
-
 @frappe.whitelist()
 def submit_deliverynote(deliverynote, data):
     data = json.loads(data)
     deliverynote = json.loads(deliverynote)
     deliverynote_doc = frappe.get_doc("Delivery Note", deliverynote.get("name"))
     deliverynote_doc.update(deliverynote)
+    deliverynote_doc.status = "To Bill"
+
     if deliverynote.get("posa_delivery_date"):
         deliverynote_doc.update_stock = 0
-    mop_cash_list = [
-        i.mode_of_payment
-        for i in deliverynote_doc.payments
-        if "cash" in i.mode_of_payment.lower() and i.type == "Cash"
-    ]
+
+    # Check if 'payments' attribute is present
+    if hasattr(deliverynote_doc, "payments"):
+        mop_cash_list = [
+            i.mode_of_payment
+            for i in deliverynote_doc.payments
+            if "cash" in i.mode_of_payment.lower() and i.type == "Cash"
+        ]
+    else:
+        mop_cash_list = []
+
     if len(mop_cash_list) > 0:
         cash_account = get_bank_cash_account(mop_cash_list[0], deliverynote_doc.company)
     else:
@@ -443,111 +451,11 @@ def submit_deliverynote(deliverynote, data):
             )
         }
 
-    # creating advance payment
-    if data.get("credit_change"):
-        advance_payment_entry = frappe.get_doc(
-            {
-                "doctype": "Payment Entry",
-                "mode_of_payment": "Cash",
-                "paid_to": cash_account["account"],
-                "payment_type": "Receive",
-                "party_type": "Customer",
-                "party": deliverynote_doc.get("customer"),
-                "paid_amount": deliverynote_doc.get("credit_change"),
-                "received_amount": deliverynote_doc.get("credit_change"),
-                "company": deliverynote_doc.get("company"),
-            }
-        )
-
-        advance_payment_entry.flags.ignore_permissions = True
-        frappe.flags.ignore_account_permission = True
-        advance_payment_entry.save()
-        advance_payment_entry.submit()
-
-    # calculating cash
-    total_cash = 0
-    if data.get("redeemed_customer_credit"):
-        total_cash = deliverynote_doc.total - float(data.get("redeemed_customer_credit"))
-
-    is_payment_entry = 0
-    if data.get("redeemed_customer_credit"):
-        for row in data.get("customer_credit_dict"):
-            if row["type"] == "Advance" and row["credit_to_redeem"]:
-                advance = frappe.get_doc("Payment Entry", row["credit_origin"])
-
-                advance_payment = {
-                    "reference_type": "Payment Entry",
-                    "reference_name": advance.name,
-                    "remarks": advance.remarks,
-                    "advance_amount": advance.unallocated_amount,
-                    "allocated_amount": row["credit_to_redeem"],
-                }
-
-                deliverynote_doc.append("advances", advance_payment)
-                deliverynote_doc.is_pos = 0
-                is_payment_entry = 1
-
-    payments = []
-
-    if data.get("is_cashback") and not is_payment_entry:
-        for payment in deliverynote.get("payments"):
-            for i in deliverynote_doc.payments:
-                if i.mode_of_payment == payment["mode_of_payment"]:
-                    i.amount = payment["amount"]
-                    i.base_amount = 0
-                    if i.amount:
-                        payments.append(i)
-                    break
-
-        if len(payments) == 0 and not deliverynote_doc.is_return and deliverynote_doc.is_pos:
-            payments = [deliverynote_doc.payments[0]]
-    else:
-        deliverynote_doc.is_pos = 0
-
-    deliverynote_doc.payments = payments
-    if frappe.get_value("POS Profile", deliverynote_doc.pos_profile, "posa_auto_set_batch"):
-        set_batch_nos(deliverynote_doc, "warehouse", throw=True)
-    set_batch_nos_for_bundels(deliverynote_doc, "warehouse", throw=True)
-    deliverynote_doc.due_date = data.get("due_date")
-    deliverynote_doc.flags.ignore_permissions = True
-    frappe.flags.ignore_account_permission = True
-    deliverynote_doc.posa_is_printed = 1
+    # Validate and save the delivery note
     deliverynote_doc.save()
+    deliverynote_doc.submit()
 
-    if frappe.get_value(
-        "POS Profile",
-        deliverynote_doc.pos_profile,
-        "posa_allow_submissions_in_background_job",
-    ):
-        deliverynotes_list = frappe.get_all(
-            "Delivery Note",
-            filters={
-                "posa_pos_opening_shift": deliverynote_doc.posa_pos_opening_shift,
-                "docstatus": 0,
-                "posa_is_printed": 1,
-            },
-        )
-        for deliverynote in deliverynotes_list:
-            enqueue(
-                method=submit_in_background_job,
-                queue="short",
-                timeout=1000,
-                is_async=True,
-                kwargs={
-                    "deliverynote": deliverynote.name,
-                    "data": data,
-                    "is_payment_entry": is_payment_entry,
-                    "total_cash": total_cash,
-                    "cash_account": cash_account,
-                },
-            )
-    else:
-        deliverynote_doc.submit()
-        redeeming_customer_credit(
-            deliverynote_doc, data, is_payment_entry, total_cash, cash_account
-        )
-
-    return {"name": deliverynote_doc.name, "status": deliverynote_doc.docstatus}
+    return {"name": deliverynote_doc.name, "status": deliverynote_doc.status}
 
 
 def set_batch_nos_for_bundels(doc, warehouse_field, throw=False):

@@ -94,7 +94,7 @@ doctype_js = {
 doc_events = {
     "Delivery Note": {
         "validate": "posawesome.posawesome.api.deliverynote.validate",
-        "before_submit": "posawesome.posawesome.api.deliverynote.before_submit",
+#        "before_submit": "posawesome.posawesome.api.deliverynote.before_submit",
         "before_cancel": "posawesome.posawesome.api.deliverynote.before_cancel",
     },
     "Customer": {

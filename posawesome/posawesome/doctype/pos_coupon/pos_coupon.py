@@ -128,7 +128,7 @@ def check_coupon_code(coupon_code, customer=None, company=None):
             "POS Coupon Detail",
             filters={
                 "parentfield": "posa_coupons",
-                "parenttype": "Sales Invoice",
+                "parenttype": "Delivery Note",
                 "docstatus": 1,
                 "customer": customer,
             },

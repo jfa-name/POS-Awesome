@@ -1,7 +1,7 @@
 [
  {
   "default_value": null,
-  "doc_type": "Sales Invoice",
+  "doc_type": "Delivery Note",
   "docstatus": 0,
   "doctype": "Property Setter",
   "doctype_or_field": "DocField",
@@ -9,7 +9,7 @@
   "is_system_generated": 0,
   "modified": "2020-10-26 15:35:40.861492",
   "module": null,
-  "name": "Sales Invoice-posa_pos_opening_shift-no_copy",
+  "name": "Delivery Note-posa_pos_opening_shift-no_copy",
   "property": "no_copy",
   "property_type": "Check",
   "row_name": null,
