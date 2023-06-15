@@ -582,7 +582,7 @@
               flat
               :label="frappe._('Use Customer Credit')"
               class="my-0 py-0"
-              @change="get_available_credit($event)"
+              @change="get_available_credit_dn($event)"
             ></v-switch>
           </v-col>
         </v-row>
@@ -948,11 +948,11 @@ export default {
         this.credit_change = 0;
       }
     },
-    get_available_credit(e) {
+    get_available_credit_dn(e) {
       this.clear_all_amounts();
       if (e) {
         frappe
-          .call('posawesome.posawesome.api.posapp.get_available_credit', {
+          .call('posawesome.posawesome.api.posapp.get_available_credit_dn', {
             customer: this.deliverynote_doc.customer,
             company: this.pos_profile.company,
           })
