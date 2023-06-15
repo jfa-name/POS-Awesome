@@ -43,7 +43,7 @@
         <PosCoupons></PosCoupons>
       </v-col>
       <v-col
-        v-show="payment"
+        v-show="Proceed"
         xl="5"
         lg="5"
         md="5"
@@ -51,11 +51,11 @@
         cols="12"
         class="pos pr-0"
       >
-        <Payments></Payments>
+        <Proceed></Proceed>
       </v-col>
 
       <v-col xl="7" lg="7" md="7" sm="7" cols="12" class="pos">
-        <Invoice></Invoice>
+        <DeliveryNote></DeliveryNote>
       </v-col>
     </v-row>
   </div>
@@ -64,9 +64,8 @@
 <script>
 import { evntBus } from '../../bus';
 import ItemsSelector from './ItemsSelector.vue';
-import Invoice from './Invoice.vue';
+import DeliveryNote from './DeliveryNote.vue';
 import OpeningDialog from './OpeningDialog.vue';
-import Payments from './Payments.vue';
 import PosOffers from './PosOffers.vue';
 import PosCoupons from './PosCoupons.vue';
 import Drafts from './Drafts.vue';
@@ -76,6 +75,7 @@ import NewAddress from './NewAddress.vue';
 import Variants from './Variants.vue';
 import Returns from './Returns.vue';
 import MpesaPayments from './Mpesa-Payments.vue';
+import Proceed from './Proceed.vue';
 
 export default {
   data: function () {
@@ -91,9 +91,9 @@ export default {
 
   components: {
     ItemsSelector,
-    Invoice,
+    DeliveryNote,
     OpeningDialog,
-    Payments,
+    Proceed,
     Drafts,
     ClosingDialog,
     UpdateCustomer,
