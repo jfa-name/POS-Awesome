@@ -439,12 +439,12 @@ def update_deliverynote(data):
         ref_doc = frappe.get_cached_doc(deliverynote_doc.doctype, deliverynote_doc.return_against)
         if not ref_doc.update_stock:
             deliverynote_doc.update_stock = 0
-        if len(deliverynote_doc.payments) == 0:
-            deliverynote_doc.payments = ref_doc.payments
+        if len(deliverynote_doc.proceed) == 0:
+            deliverynote_doc.proceed = ref_doc.proceed
         deliverynote_doc.paid_amount = deliverynote_doc.rounded_total or deliverynote_doc.grand_total or deliverynote_doc.total
-        for payment in deliverynote_doc.payments:
-            if payment.default:
-                payment.amount = deliverynote_doc.paid_amount
+        for proceed in deliverynote_doc.proceed:
+            if proceed.default:
+                proceed.amount = deliverynote_doc.paid_amount
     allow_zero_rated_items = frappe.get_cached_value(
         "POS Profile", deliverynote_doc.pos_profile, "posa_allow_zero_rated_items"
     )
@@ -610,11 +610,11 @@ def submit_deliverynote(deliverynote, data):
     if deliverynote.get("posa_delivery_date"):
         deliverynote_doc.update_stock = 0
 
-    # Check if 'payments' attribute is present
-    if hasattr(deliverynote_doc, "payments"):
+    # Check if 'procced' attribute is present
+    if hasattr(deliverynote_doc, "proceed"):
         mop_cash_list = [
             i.mode_of_payment
-            for i in deliverynote_doc.payments
+            for i in deliverynote_doc.proceed
             if "cash" in i.mode_of_payment.lower() and i.type == "Cash"
         ]
     else:

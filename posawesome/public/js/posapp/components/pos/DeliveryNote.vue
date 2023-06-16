@@ -727,7 +727,7 @@
                 color="success"
                 @click="show_payment"
                 dark
-                >{{ __('PAY') }}</v-btn
+                >{{ __('PROCEED') }}</v-btn
               >
             </v-col>
             <v-col
@@ -1096,6 +1096,7 @@ export default {
         this.additional_discount_percentage
       );
       doc.posa_pos_opening_shift = this.pos_opening_shift.name;
+      doc.proceed = this.get_proceed();
       doc.payments = this.get_payments();
       doc.taxes = [];
       doc.is_return = this.deliverynote_doc.is_return;
@@ -1138,17 +1139,17 @@ export default {
       return items_list;
     },
 
-    get_payments() {
-      const payments = [];
+    get_proceed() {
+      const proceed = [];
       this.pos_profile.payments.forEach((payment) => {
-        payments.push({
+        proceed.push({
           amount: 0,
           mode_of_payment: payment.mode_of_payment,
           default: payment.default,
           account: '',
         });
       });
-      return payments;
+      return proceed;
     },
     update_deliverynote(doc) {
       const vm = this;
@@ -1161,8 +1162,8 @@ export default {
         callback: function (r) {
           if (r.message) {
             vm.deliverynote_doc = r.message;
-            // Make sure to set the `payments` property
-            vm.deliverynote_doc.payments = []; // Initialize as an empty array
+            // Make sure to set the `proceed` property
+            vm.deliverynote_doc.proceed = []; // Initialize as an empty array
           }
         },
       });
@@ -1197,7 +1198,7 @@ export default {
         return;
       }
       evntBus.$emit('show_payment', 'true');
-      const deliverynote_doc = this.proces_deliverynote();
+      const deliverynote_doc = this.proceed_deliverynote();
       this.send_deliverynote_doc_payment(deliverynote_doc)
         .then((updatedDeliverynoteDoc) => {
           evntBus.$emit('send_deliverynote_doc_payment', updatedDeliverynoteDoc);

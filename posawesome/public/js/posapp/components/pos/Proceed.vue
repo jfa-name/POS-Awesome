@@ -20,7 +20,7 @@
               :label="frappe._('Paid Amount')"
               background-color="white"
               hide-details
-              :value="formtCurrency(total_payments)"
+              :value="formtCurrency(total_proceed)"
               readonly
               :prefix="deliverynote_doc.currency"
               dense
@@ -78,7 +78,7 @@
               :label="frappe._('Paid Amount')"
               background-color="white"
               hide-details
-              :value="formtCurrency(total_payments)"
+              :value="formtCurrency(total_proceed)"
               readonly
               :prefix="deliverynote_doc.currency"
               dense
@@ -132,7 +132,7 @@
         <div v-if="is_cashback">
           <v-row
             class="pyments px-1 py-0"
-            v-for="payment in deliverynote_doc.payments"
+            v-for="payment in deliverynote_doc.proceed"
             :key="payment.name"
           >
             <v-col cols="6" v-if="!is_mpesa_c2b_payment(payment)">
@@ -863,12 +863,12 @@ export default {
     },
 
     set_full_amount(idx) {
-      this.deliverynote_doc.payments.forEach((payment) => {
+      this.deliverynote_doc.proceed.forEach((payment) => {
         payment.amount = payment.idx == idx ? this.deliverynote_doc.grand_total : 0;
       });
     },
     set_rest_amount(idx) {
-      this.deliverynote_doc.payments.forEach((payment) => {
+      this.deliverynote_doc.proceed.forEach((payment) => {
         if (
           payment.idx == idx &&
           payment.amount == 0 &&
@@ -879,7 +879,7 @@ export default {
       });
     },
     clear_all_amounts() {
-      this.deliverynote_doc.payments.forEach((payment) => {
+      this.deliverynote_doc.proceed.forEach((payment) => {
         payment.amount = 0;
       });
     },
@@ -1189,10 +1189,10 @@ export default {
   },
 
   computed: {
-    total_payments() {
+    total_proceed() {
       let total = parseFloat(this.deliverynote_doc.loyalty_amount);
-      if (this.deliverynote_doc && this.deliverynote_doc.payments) {
-        this.deliverynote_doc.payments.forEach((payment) => {
+      if (this.deliverynote_doc && this.deliverynote_doc.proceed) {
+        this.deliverynote_doc.proceed.forEach((payment) => {
           total += parseFloat(payment.amount);
         });
       }
@@ -1205,7 +1205,7 @@ export default {
     },
     diff_payment() {
       let diff_payment = (
-        this.deliverynote_doc.grand_total - this.total_payments
+        this.deliverynote_doc.grand_total - this.total_proceed
       ).toFixed(this.currency_precision);
       this.paid_change = -diff_payment;
       return diff_payment;
@@ -1280,7 +1280,7 @@ export default {
     this.$nextTick(function () {
       evntBus.$on('send_deliverynote_doc_payment', (deliverynote_doc) => {
         this.deliverynote_doc = deliverynote_doc;
-        const default_payment = this.deliverynote_doc.payments.find(
+        const default_payment = this.deliverynote_doc.proceed.find(
           (payment) => payment.default == 1
         );
         this.is_credit_sale = 0;
@@ -1357,7 +1357,7 @@ export default {
     },
     is_credit_sale(value) {
       if (value == 1) {
-        this.deliverynote_doc.payments.forEach((payment) => {
+        this.deliverynote_doc.proceed.forEach((payment) => {
           payment.amount = 0;
           payment.base_amount = 0;
         });
