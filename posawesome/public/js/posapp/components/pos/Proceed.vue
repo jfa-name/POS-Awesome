@@ -20,7 +20,7 @@
               :label="frappe._('Paid Amount')"
               background-color="white"
               hide-details
-              :value="formtCurrency(total_payments)"
+              :value="formtCurrency(total_proceeds)"
               readonly
               :prefix="deliverynote_doc.currency"
               dense
@@ -33,14 +33,14 @@
               :label="frappe._(diff_lable)"
               background-color="white"
               hide-details
-              :value="formtCurrency(diff_payment)"
+              :value="formtCurrency(diff_proceed)"
               disabled
               :prefix="deliverynote_doc.currency"
               dense
             ></v-text-field>
           </v-col>
 
-          <v-col cols="7" v-if="diff_payment < 0 && !deliverynote_doc.is_return">
+          <v-col cols="7" v-if="diff_proceed < 0 && !deliverynote_doc.is_return">
             <v-text-field
               outlined
               color="primary"
@@ -55,7 +55,7 @@
             ></v-text-field>
           </v-col>
 
-          <v-col cols="5" v-if="diff_payment < 0 && !deliverynote_doc.is_return">
+          <v-col cols="5" v-if="diff_proceed < 0 && !deliverynote_doc.is_return">
             <v-text-field
               outlined
               color="primary"
@@ -78,7 +78,7 @@
               :label="frappe._('Paid Amount')"
               background-color="white"
               hide-details
-              :value="formtCurrency(total_payments)"
+              :value="formtCurrency(total_proceeds)"
               readonly
               :prefix="deliverynote_doc.currency"
               dense
@@ -91,14 +91,14 @@
               :label="frappe._(diff_lable)"
               background-color="white"
               hide-details
-              :value="formtCurrency(diff_payment)"
+              :value="formtCurrency(diff_proceed)"
               disabled
               :prefix="deliverynote_doc.currency"
               dense
             ></v-text-field>
           </v-col>
 
-          <v-col cols="7" v-if="diff_payment < 0 && !deliverynote_doc.is_return">
+          <v-col cols="7" v-if="diff_proceed < 0 && !deliverynote_doc.is_return">
             <v-text-field
               outlined
               color="primary"
@@ -113,7 +113,7 @@
             ></v-text-field>
           </v-col>
 
-          <v-col cols="5" v-if="diff_payment < 0 && !deliverynote_doc.is_return">
+          <v-col cols="5" v-if="diff_proceed < 0 && !deliverynote_doc.is_return">
             <v-text-field
               outlined
               color="primary"
@@ -132,32 +132,32 @@
         <div v-if="is_cashback">
           <v-row
             class="pyments px-1 py-0"
-            v-for="payment in deliverynote_doc.payments"
-            :key="payment.name"
+            v-for="proceed in deliverynote_doc.proceeds"
+            :key="proceed.name"
           >
-            <v-col cols="6" v-if="!is_mpesa_c2b_payment(payment)">
+            <v-col cols="6" v-if="!is_mpesa_c2b_proceed(proceed)">
               <v-text-field
                 dense
                 outlined
                 color="primary"
-                :label="frappe._(payment.mode_of_payment)"
+                :label="frappe._(proceed.mode_of_proceed)"
                 background-color="white"
                 hide-details
-                v-model="payment.amount"
+                v-model="proceed.amount"
                 type="number"
                 :prefix="deliverynote_doc.currency"
-                @focus="set_rest_amount(payment.idx)"
+                @focus="set_rest_amount(proceed.idx)"
                 :readonly="deliverynote_doc.is_return ? true : false"
               ></v-text-field>
             </v-col>
             <v-col
-              v-if="!is_mpesa_c2b_payment(payment)"
+              v-if="!is_mpesa_c2b_proceed(proceed)"
               :cols="
                 6
-                  ? (payment.type != 'Phone' ||
-                      payment.amount == 0 ||
-                      !request_payment_field) &&
-                    !is_mpesa_c2b_payment(payment)
+                  ? (proceed.type != 'Phone' ||
+                      proceed.amount == 0 ||
+                      !request_proceed_field) &&
+                    !is_mpesa_c2b_proceed(proceed)
                   : 3
               "
             >
@@ -166,26 +166,26 @@
                 class=""
                 color="primary"
                 dark
-                @click="set_full_amount(payment.idx)"
-                >{{ payment.mode_of_payment }}</v-btn
+                @click="set_full_amount(proceed.idx)"
+                >{{ proceed.mode_of_proceed }}</v-btn
               >
             </v-col>
-            <v-col v-if="is_mpesa_c2b_payment(payment)" :cols="12" class="pl-3">
+            <v-col v-if="is_mpesa_c2b_proceed(proceed)" :cols="12" class="pl-3">
               <v-btn
                 block
                 class=""
                 color="success"
                 dark
-                @click="mpesa_c2b_dialg(payment)"
+                @click="mpesa_c2b_dialg(proceed)"
               >
-                {{ __(`Get Payments ${payment.mode_of_payment}`) }}
+                {{ __(`Get Payments ${proceed.mode_of_proceed}`) }}
               </v-btn>
             </v-col>
             <v-col
               v-if="
-                payment.type == 'Phone' &&
-                payment.amount > 0 &&
-                request_payment_field
+                proceed.type == 'Phone' &&
+                proceed.amount > 0 &&
+                request_proceed_field
               "
               :cols="3"
               class="pl-1"
@@ -195,10 +195,10 @@
                 class=""
                 color="success"
                 dark
-                :disabled="payment.amount == 0"
+                :disabled="proceed.amount == 0"
                 @click="
                   (phone_dialog = true),
-                    (payment.amount = Math.ceil(payment.amount))
+                    (proceed.amount = Math.ceil(proceed.amount))
                 "
               >
                 {{ __('Request') }}
@@ -509,7 +509,7 @@
             cols="6"
             v-if="
               pos_profile.posa_allow_write_off_change &&
-              diff_payment > 0 &&
+              diff_proceed > 0 &&
               !deliverynote_doc.is_return
             "
           >
@@ -738,7 +738,7 @@
             color="error"
             dark
             @click="back_to_deliverynote"
-            >{{ __('Cancel Payment') }}</v-btn
+            >{{ __('Cancel DN') }}</v-btn
           >
         </v-col>
       </v-row>
@@ -770,7 +770,7 @@
             <v-btn color="error" dark @click="phone_dialog = false">{{
               __('Close')
             }}</v-btn>
-            <v-btn color="primary" dark @click="request_payment">{{
+            <v-btn color="primary" dark @click="request_proceed">{{
               __('Request')
             }}</v-btn>
           </v-card-actions>
@@ -814,10 +814,10 @@ export default {
 
   methods: {
     back_to_deliverynote() {
-      evntBus.$emit('show_payment', 'false');
+      evntBus.$emit('show_proceed', 'false');
       evntBus.$emit('set_customer_readonly', false);
     },
-    submit(event, payment_received = false, print = false) {
+    submit(event, proceed_received = false, print = false) {
       this.submit_deliverynote(print);
       this.customer_credit_dict = [];
       this.redeem_customer_credit = false;
@@ -830,7 +830,7 @@ export default {
     
     submit_deliverynote(print) {
       let data = {};
-      data['total_change'] = -this.diff_payment;
+      data['total_change'] = -this.diff_proceed;
       data['paid_change'] = this.paid_change;
       data['credit_change'] = -this.credit_change;
       data['redeemed_customer_credit'] = this.redeemed_customer_credit;
@@ -863,24 +863,24 @@ export default {
     },
 
     set_full_amount(idx) {
-      this.deliverynote_doc.payments.forEach((payment) => {
-        payment.amount = payment.idx == idx ? this.deliverynote_doc.grand_total : 0;
+      this.deliverynote_doc.proceeds.forEach((proceed) => {
+        proceed.amount = proceed.idx == idx ? this.deliverynote_doc.grand_total : 0;
       });
     },
     set_rest_amount(idx) {
-      this.deliverynote_doc.payments.forEach((payment) => {
+      this.deliverynote_doc.proceeds.forEach((proceed) => {
         if (
-          payment.idx == idx &&
-          payment.amount == 0 &&
-          this.diff_payment > 0
+          proceed.idx == idx &&
+          proceed.amount == 0 &&
+          this.diff_proceed > 0
         ) {
-          payment.amount = this.diff_payment;
+          proceed.amount = this.diff_proceed;
         }
       });
     },
     clear_all_amounts() {
-      this.deliverynote_doc.payments.forEach((payment) => {
-        payment.amount = 0;
+      this.deliverynote_doc.proceeds.forEach((proceed) => {
+        proceed.amount = 0;
       });
     },
     load_print_page() {
@@ -940,7 +940,7 @@ export default {
       if (!this.paid_change) this.paid_change = 0;
 
       this.paid_change_rules = [];
-      let change = -this.diff_payment;
+      let change = -this.diff_proceed;
       if (this.paid_change > change) {
         this.paid_change_rules = [
           'Paid change can not be greater than total change!',
@@ -1047,7 +1047,7 @@ export default {
         textOne.indexOf(searchText) > -1 || textTwo.indexOf(searchText) > -1
       );
     },
-    request_payment() {
+    request_proceed() {
       this.phone_dialog = false;
       const vm = this;
       if (!this.deliverynote_doc.contact_mobile) {
@@ -1064,7 +1064,7 @@ export default {
       });
 
       let formData = { ...this.deliverynote_doc };
-      formData['total_change'] = -this.diff_payment;
+      formData['total_change'] = -this.diff_proceed;
       formData['paid_change'] = this.paid_change;
       formData['credit_change'] = -this.credit_change;
       formData['redeemed_customer_credit'] = this.redeemed_customer_credit;
@@ -1087,7 +1087,7 @@ export default {
         .then(() => {
           frappe
             .call({
-              method: 'posawesome.posawesome.api.posapp.create_payment_request',
+              method: 'posawesome.posawesome.api.posapp.create_proceed_request',
               args: {
                 doc: vm.deliverynote_doc,
               },
@@ -1100,10 +1100,10 @@ export default {
               });
             })
             .then(({ message }) => {
-              const payment_request_name = message.name;
+              const proceed_request_name = message.name;
               setTimeout(() => {
                 frappe.db
-                  .get_value('Payment Request', payment_request_name, [
+                  .get_value('Payment Request', proceed_request_name, [
                     'status',
                     'grand_total',
                   ])
@@ -1143,7 +1143,7 @@ export default {
     get_mpesa_modes() {
       const vm = this;
       frappe.call({
-        method: 'posawesome.posawesome.api.m_pesa.get_mpesa_mode_of_payment',
+        method: 'posawesome.posawesome.api.m_pesa.get_mpesa_mode_of_proceed',
         args: { company: vm.pos_profile.company },
         async: true,
         callback: function (r) {
@@ -1155,33 +1155,33 @@ export default {
         },
       });
     },
-    is_mpesa_c2b_payment(payment) {
+    is_mpesa_c2b_proceed(proceed) {
       if (
-        this.mpesa_modes.includes(payment.mode_of_payment) &&
-        payment.type == 'Bank'
+        this.mpesa_modes.includes(proceed.mode_of_proceed) &&
+        proceed.type == 'Bank'
       ) {
-        payment.amount = 0;
+        proceed.amount = 0;
         return true;
       } else {
         return false;
       }
     },
-    mpesa_c2b_dialg(payment) {
+    mpesa_c2b_dialg(proceed) {
       const data = {
         company: this.pos_profile.company,
-        mode_of_payment: payment.mode_of_payment,
+        mode_of_proceed: proceed.mode_of_proceed,
         customer: this.deliverynote_doc.customer,
       };
-      evntBus.$emit('open_mpesa_payments', data);
+      evntBus.$emit('open_mpesa_proceeds', data);
     },
-    set_mpesa_payment(payment) {
+    set_mpesa_proceed(proceed) {
       this.pos_profile.use_customer_credit = 1;
       this.redeem_customer_credit = true;
       const advance = {
         type: 'Advance',
-        credit_origin: payment.name,
-        total_credit: payment.unallocated_amount,
-        credit_to_redeem: payment.unallocated_amount,
+        credit_origin: proceed.name,
+        total_credit: proceed.unallocated_amount,
+        credit_to_redeem: proceed.unallocated_amount,
       };
       this.clear_all_amounts();
       this.customer_credit_dict.push(advance);
@@ -1189,11 +1189,11 @@ export default {
   },
 
   computed: {
-    total_payments() {
+    total_proceeds() {
       let total = parseFloat(this.deliverynote_doc.loyalty_amount);
-      if (this.deliverynote_doc && this.deliverynote_doc.payments) {
-        this.deliverynote_doc.payments.forEach((payment) => {
-          total += parseFloat(payment.amount);
+      if (this.deliverynote_doc && this.deliverynote_doc.proceeds) {
+        this.deliverynote_doc.proceeds.forEach((proceed) => {
+          total += parseFloat(proceed.amount);
         });
       }
 
@@ -1203,20 +1203,20 @@ export default {
 
       return total.toFixed(this.currency_precision);
     },
-    diff_payment() {
-      let diff_payment = (
-        this.deliverynote_doc.grand_total - this.total_payments
+    diff_proceed() {
+      let diff_proceed = (
+        this.deliverynote_doc.grand_total - this.total_proceeds
       ).toFixed(this.currency_precision);
-      this.paid_change = -diff_payment;
-      return diff_payment;
+      this.paid_change = -diff_proceed;
+      return diff_proceed;
     },
     credit_change() {
-      let change = -this.diff_payment;
+      let change = -this.diff_proceed;
       if (this.paid_change > change) return 0;
       return (this.paid_change - change).toFixed(this.currency_precision);
     },
     diff_lable() {
-      let lable = this.diff_payment < 0 ? 'Change' : 'To Be Paid';
+      let lable = this.diff_proceed < 0 ? 'Change' : 'To Be Paid';
       return lable;
     },
     available_pioints_amount() {
@@ -1258,15 +1258,15 @@ export default {
         return false;
       }
     },
-    request_payment_field() {
+    request_proceed_field() {
       let res = false;
-      if (!this.pos_settings || this.pos_settings.deliverynote_fields.length == 0) {
+      if (!this.pos_settings || this.pos_settings.invoice_fields.length == 0) {
         res = false;
       } else {
-        this.pos_settings.deliverynote_fields.forEach((el) => {
+        this.pos_settings.invoice_fields.forEach((el) => {
           if (
             el.fieldtype == 'Button' &&
-            el.fieldname == 'request_for_payment'
+            el.fieldname == 'request_for_proceed'
           ) {
             res = true;
           }
@@ -1278,15 +1278,15 @@ export default {
 
   created: function () {
     this.$nextTick(function () {
-      evntBus.$on('send_deliverynote_doc_payment', (deliverynote_doc) => {
+      evntBus.$on('send_deliverynote_doc_proceed', (deliverynote_doc) => {
         this.deliverynote_doc = deliverynote_doc;
-        const default_payment = this.deliverynote_doc.payments.find(
-          (payment) => payment.default == 1
+        const default_proceed = this.deliverynote_doc.proceeds.find(
+          (proceed) => proceed.default == 1
         );
         this.is_credit_sale = 0;
         this.is_write_off_change = 0;
-        if (default_payment) {
-          default_payment.amount = deliverynote_doc.grand_total.toFixed(
+        if (default_proceed) {
+          default_proceed.amount = deliverynote_doc.grand_total.toFixed(
             this.currency_precision
           );
         }
@@ -1308,7 +1308,7 @@ export default {
       });
       evntBus.$on('update_deliverynote_type', (data) => {
         this.deliverynoteType = data;
-        if (this.deliverynote_doc && data != 'Order') {
+        if (this.deliverynote_doc && data != 'Entry') {
           this.deliverynote_doc.posa_delivery_date = null;
           this.deliverynote_doc.posa_notes = null;
           this.deliverynote_doc.shipping_address_name = null;
@@ -1328,8 +1328,8 @@ export default {
     evntBus.$on('set_customer_info_to_edit', (data) => {
       this.customer_info = data;
     });
-    evntBus.$on('set_mpesa_payment', (data) => {
-      this.set_mpesa_payment(data);
+    evntBus.$on('set_mpesa_proceed', (data) => {
+      this.set_mpesa_proceed(data);
     });
     document.addEventListener('keydown', this.shortPay.bind(this));
   },
@@ -1357,15 +1357,15 @@ export default {
     },
     is_credit_sale(value) {
       if (value == 1) {
-        this.deliverynote_doc.payments.forEach((payment) => {
-          payment.amount = 0;
-          payment.base_amount = 0;
+        this.deliverynote_doc.proceeds.forEach((proceed) => {
+          proceed.amount = 0;
+          proceed.base_amount = 0;
         });
       }
     },
     is_write_off_change(value) {
       if (value == 1) {
-        this.deliverynote_doc.write_off_amount = this.diff_payment;
+        this.deliverynote_doc.write_off_amount = this.diff_proceed;
         this.deliverynote_doc.write_off_outstanding_amount_automatically = 1;
       } else {
         this.deliverynote_doc.write_off_amount = 0;

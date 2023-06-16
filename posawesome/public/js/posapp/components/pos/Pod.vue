@@ -10,7 +10,7 @@
     <OpeningDialog v-if="dialog" :dialog="dialog"></OpeningDialog>
     <v-row v-show="!dialog">
       <v-col
-        v-show="!payment && !offers && !coupons"
+        v-show="!proceed && !offers && !coupons"
         xl="5"
         lg="5"
         md="5"
@@ -43,7 +43,7 @@
         <PosCoupons></PosCoupons>
       </v-col>
       <v-col
-        v-show="Proceed"
+        v-show="proceed"
         xl="5"
         lg="5"
         md="5"
@@ -83,7 +83,7 @@ export default {
       dialog: false,
       pos_profile: '',
       pos_opening_shift: '',
-      payment: false,
+      proceed: false,
       offers: false,
       coupons: false,
     };
@@ -196,20 +196,20 @@ export default {
         evntBus.$emit('register_pos_profile', data);
         console.info('LoadPosProfile');
       });
-      evntBus.$on('show_payment', (data) => {
-        this.payment = true ? data === 'true' : false;
+      evntBus.$on('show_proceed', (data) => {
+        this.proceed = true ? data === 'true' : false;
         this.offers = false ? data === 'true' : false;
         this.coupons = false ? data === 'true' : false;
       });
       evntBus.$on('show_offers', (data) => {
         this.offers = true ? data === 'true' : false;
-        this.payment = false ? data === 'true' : false;
+        this.proceed = false ? data === 'true' : false;
         this.coupons = false ? data === 'true' : false;
       });
       evntBus.$on('show_coupons', (data) => {
         this.coupons = true ? data === 'true' : false;
         this.offers = false ? data === 'true' : false;
-        this.payment = false ? data === 'true' : false;
+        this.proceed = false ? data === 'true' : false;
       });
       evntBus.$on('open_closing_dialog', () => {
         this.get_closing_data();

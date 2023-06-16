@@ -725,9 +725,9 @@
                 block
                 class="pa-0"
                 color="success"
-                @click="show_payment"
+                @click="show_proceed"
                 dark
-                >{{ __('PAY') }}</v-btn
+                >{{ __('PROCEED') }}</v-btn
               >
             </v-col>
             <v-col
@@ -787,6 +787,7 @@ export default {
       delivery_charges_rate: 0,
       selcted_delivery_charges: {},
       deliverynote_posting_date: false,
+      proceed: false,
       posting_date: frappe.datetime.nowdate(),
       items_headers: [
         {
@@ -810,7 +811,7 @@ export default {
 
   computed: {
     total_qty() {
-      this.close_payments();
+      this.close_proceeds();
       let qty = 0;
       this.items.forEach((item) => {
         qty += item.qty;
@@ -825,7 +826,7 @@ export default {
       return flt(sum).toFixed(this.currency_precision);
     },
     subtotal() {
-      this.close_payments();
+      this.close_proceeds();
       let sum = 0;
       this.items.forEach((item) => {
         sum += item.qty * item.rate;
@@ -1096,7 +1097,7 @@ export default {
         this.additional_discount_percentage
       );
       doc.posa_pos_opening_shift = this.pos_opening_shift.name;
-      doc.payments = this.get_payments();
+      doc.proceeds = this.get_proceeds();
       doc.taxes = [];
       doc.is_return = this.deliverynote_doc.is_return;
       doc.return_against = this.deliverynote_doc.return_against;
@@ -1138,17 +1139,17 @@ export default {
       return items_list;
     },
 
-    get_payments() {
-      const payments = [];
-      this.pos_profile.payments.forEach((payment) => {
-        payments.push({
+    get_proceeds() {
+      const proceeds = [];
+      this.pos_profile.proceeds.forEach((proceed) => {
+        proceeds.push({
           amount: 0,
-          mode_of_payment: payment.mode_of_payment,
-          default: payment.default,
+          mode_of_proceed: proceed.mode_of_proceed,
+          default: proceed.default,
           account: '',
         });
       });
-      return payments;
+      return proceeds;
     },
     update_deliverynote(doc) {
       const vm = this;
@@ -1162,7 +1163,7 @@ export default {
           if (r.message) {
             vm.deliverynote_doc = r.message;
             // Make sure to set the `payments` property
-            vm.deliverynote_doc.payments = []; // Initialize as an empty array
+            vm.deliverynote_doc.proceeds = []; // Initialize as an empty array
           }
         },
       });
@@ -1178,7 +1179,7 @@ export default {
       }
     },
 
-    show_payment() {
+    show_proceed() {
       if (!this.customer) {
         evntBus.$emit('show_mesage', {
           text: __(`There is no Customer !`),
@@ -1196,20 +1197,20 @@ export default {
       if (!this.validate()) {
         return;
       }
-      evntBus.$emit('show_payment', 'true');
+      evntBus.$emit('show_proceed', 'true');
       const deliverynote_doc = this.proces_deliverynote();
-      this.send_deliverynote_doc_payment(deliverynote_doc)
-        .then((updatedDeliverynoteDoc) => {
-          evntBus.$emit('send_deliverynote_doc_payment', updatedDeliverynoteDoc);
+      this.send_deliverynote_doc_proceed(deliverynote_doc)
+        .then((updatedDeliveryNoteDoc) => {
+          evntBus.$emit('send_deliverynote_doc_proceed', updatedDeliveryNoteDoc);
         })
         .catch((error) => {
           console.error(error);
         });
     },
     
-    send_deliverynote_doc_payment(deliverynote_doc) {
+    send_deliverynote_doc_proceed(deliverynote_doc) {
       return new Promise((resolve) => {
-        evntBus.$emit('send_deliverynote_doc_payment', deliverynote_doc);
+        evntBus.$emit('send_deliverynote_doc_proceed', deliverynote_doc);
         resolve(deliverynote_doc);
       });
     },
@@ -1219,7 +1220,7 @@ export default {
       this.items.forEach((item) => {
         if (this.stock_settings.allow_negative_stock != 1) {
           if (
-            this.deliverynoteType == 'Invoice' &&
+            this.deliverynoteType == 'Delivery Note' &&
             ((item.is_stock_item && item.stock_qty && !item.actual_qty) ||
               (item.is_stock_item && item.stock_qty > item.actual_qty))
           ) {
@@ -1356,8 +1357,8 @@ export default {
       evntBus.$emit('open_returns', this.pos_profile.company);
     },
 
-    close_payments() {
-      evntBus.$emit('show_payment', 'false');
+    close_proceeds() {
+      evntBus.$emit('show_proceed', 'false');
     },
 
     update_items_details(items) {
@@ -1660,10 +1661,10 @@ export default {
         .replace(/\d(?=(\d{3})+\.)/g, '$&,');
     },
 
-    shortOpenPayment(e) {
+    shortOpenProceed(e) {
       if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        this.show_payment();
+        this.show_proceed();
       }
     },
 
@@ -2549,20 +2550,20 @@ export default {
     evntBus.$on('set_new_line', (data) => {
       this.new_line = data;
     });
-    document.addEventListener('keydown', this.shortOpenPayment.bind(this));
+    document.addEventListener('keydown', this.shortOpenProceed.bind(this));
     document.addEventListener('keydown', this.shortDeleteFirstItem.bind(this));
     document.addEventListener('keydown', this.shortOpenFirstItem.bind(this));
     document.addEventListener('keydown', this.shortSelectDiscount.bind(this));
   },
   destroyed() {
-    document.removeEventListener('keydown', this.shortOpenPayment);
+    document.removeEventListener('keydown', this.shortOpenProceed);
     document.removeEventListener('keydown', this.shortDeleteFirstItem);
     document.removeEventListener('keydown', this.shortOpenFirstItem);
     document.removeEventListener('keydown', this.shortSelectDiscount);
   },
   watch: {
     customer() {
-      this.close_payments();
+      this.close_proceeds();
       evntBus.$emit('set_customer', this.customer);
       this.fetch_customer_details();
       this.set_delivery_charges();

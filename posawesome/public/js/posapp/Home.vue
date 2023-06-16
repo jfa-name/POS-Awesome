@@ -17,7 +17,7 @@ import POD from './components/pos/Pod.vue';
 export default {
   data: function () {
     return {
-      page: 'POD',
+      page: 'POS',
     };
   },
   components: {
