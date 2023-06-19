@@ -1,15 +1,16 @@
 <template>
-  <div fluid class="mt-2">
+  <div fluid>
     <ClosingDialog></ClosingDialog>
     <Drafts></Drafts>
     <Returns></Returns>
+    <UpdateCustomer></UpdateCustomer>
     <NewAddress></NewAddress>
     <MpesaPayments></MpesaPayments>
     <Variants></Variants>
     <OpeningDialog v-if="dialog" :dialog="dialog"></OpeningDialog>
     <v-row v-show="!dialog">
       <v-col
-        v-show="!payment && !offers && !coupons"
+        v-show="!proceed && !offers && !coupons"
         xl="5"
         lg="5"
         md="5"
@@ -42,7 +43,7 @@
         <PosCoupons></PosCoupons>
       </v-col>
       <v-col
-        v-show="payment"
+        v-show="proceed"
         xl="5"
         lg="5"
         md="5"
@@ -50,11 +51,11 @@
         cols="12"
         class="pos pr-0"
       >
-        <Payments></Payments>
+        <Proceed></Proceed>
       </v-col>
 
       <v-col xl="7" lg="7" md="7" sm="7" cols="12" class="pos">
-        <Invoice></Invoice>
+        <DeliveryNote></DeliveryNote>
       </v-col>
     </v-row>
   </div>
@@ -63,17 +64,18 @@
 <script>
 import { evntBus } from '../../bus';
 import ItemsSelector from './ItemsSelector.vue';
-import Invoice from './Invoice.vue';
+import DeliveryNote from './DeliveryNote.vue';
 import OpeningDialog from './OpeningDialog.vue';
-import Payments from './Payments.vue';
 import PosOffers from './PosOffers.vue';
 import PosCoupons from './PosCoupons.vue';
 import Drafts from './Drafts.vue';
 import ClosingDialog from './ClosingDialog.vue';
+import UpdateCustomer from './UpdateCustomer.vue';
 import NewAddress from './NewAddress.vue';
 import Variants from './Variants.vue';
 import Returns from './Returns.vue';
 import MpesaPayments from './Mpesa-Payments.vue';
+import Proceed from './Proceed.vue';
 
 export default {
   data: function () {
@@ -81,7 +83,7 @@ export default {
       dialog: false,
       pos_profile: '',
       pos_opening_shift: '',
-      payment: false,
+      proceed: false,
       offers: false,
       coupons: false,
     };
@@ -89,12 +91,12 @@ export default {
 
   components: {
     ItemsSelector,
-    Invoice,
+    DeliveryNote,
     OpeningDialog,
-    Payments,
+    Proceed,
     Drafts,
     ClosingDialog,
-
+    UpdateCustomer,
     Returns,
     PosOffers,
     PosCoupons,
@@ -137,7 +139,7 @@ export default {
           if (r.message) {
             evntBus.$emit('open_ClosingDialog', r.message);
           } else {
-            // console.log(r);
+            console.log(r);
           }
         });
     },
@@ -180,7 +182,7 @@ export default {
     },
   },
 
-  mounted: function () {
+  created: function () {
     this.$nextTick(function () {
       this.check_opening_entry();
       this.get_pos_setting();
@@ -194,20 +196,20 @@ export default {
         evntBus.$emit('register_pos_profile', data);
         console.info('LoadPosProfile');
       });
-      evntBus.$on('show_payment', (data) => {
-        this.payment = true ? data === 'true' : false;
+      evntBus.$on('show_proceed', (data) => {
+        this.proceed = true ? data === 'true' : false;
         this.offers = false ? data === 'true' : false;
         this.coupons = false ? data === 'true' : false;
       });
       evntBus.$on('show_offers', (data) => {
         this.offers = true ? data === 'true' : false;
-        this.payment = false ? data === 'true' : false;
+        this.proceed = false ? data === 'true' : false;
         this.coupons = false ? data === 'true' : false;
       });
       evntBus.$on('show_coupons', (data) => {
         this.coupons = true ? data === 'true' : false;
         this.offers = false ? data === 'true' : false;
-        this.payment = false ? data === 'true' : false;
+        this.proceed = false ? data === 'true' : false;
       });
       evntBus.$on('open_closing_dialog', () => {
         this.get_closing_data();
@@ -216,15 +218,6 @@ export default {
         this.submit_closing_pos(data);
       });
     });
-  },
-  beforeDestroy() {
-    evntBus.$off('close_opening_dialog');
-    evntBus.$off('register_pos_data');
-    evntBus.$off('LoadPosProfile');
-    evntBus.$off('show_offers');
-    evntBus.$off('show_coupons');
-    evntBus.$off('open_closing_dialog');
-    evntBus.$off('submit_closing_pos');
   },
 };
 </script>

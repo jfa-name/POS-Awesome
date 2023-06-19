@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2021, Youssef Restom and contributors
+# Copyright (c) 2023, Felipe Acosta and contributors
 # For license information, please see license.txt
 
 
@@ -23,21 +23,20 @@ def validate(doc, method):
 
 def before_submit(doc, method):
     add_loyalty_point(doc)
-    create_sales_order(doc)
+    create_deliverynote(doc)
     update_coupon(doc, "used")
 
 
 def before_cancel(doc, method):
     update_coupon(doc, "cancelled")
 
-
-def add_loyalty_point(invoice_doc):
-    for offer in invoice_doc.posa_offers:
+def add_loyalty_point(deliverynote_doc):
+    for offer in deliverynote_doc.posa_offers:
         if offer.offer == "Loyalty Point":
             original_offer = frappe.get_doc("POS Offer", offer.offer_name)
             if original_offer.loyalty_points > 0:
                 loyalty_program = frappe.get_value(
-                    "Customer", invoice_doc.customer, "loyalty_program"
+                    "Customer", deliverynote_doc.customer, "loyalty_program"
                 )
                 if not loyalty_program:
                     loyalty_program = original_offer.loyalty_program
@@ -46,51 +45,48 @@ def add_loyalty_point(invoice_doc):
                         "doctype": "Loyalty Point Entry",
                         "loyalty_program": loyalty_program,
                         "loyalty_program_tier": original_offer.name,
-                        "customer": invoice_doc.customer,
-                        "invoice_type": "Sales Invoice",
-                        "invoice": invoice_doc.name,
+                        "customer": deliverynote_doc.customer,
+                        "delivery_note": deliverynote_doc.name,
                         "loyalty_points": original_offer.loyalty_points,
-                        "expiry_date": add_days(invoice_doc.posting_date, 10000),
-                        "posting_date": invoice_doc.posting_date,
-                        "company": invoice_doc.company,
+                        "expiry_date": add_days(deliverynote_doc.posting_date, 10000),
+                        "posting_date": deliverynote_doc.posting_date,
+                        "company": deliverynote_doc.company,
                     }
                 )
                 doc.insert(ignore_permissions=True)
 
-
-def create_sales_order(doc):
+def create_deliverynote(doc):
     if (
         doc.posa_pos_opening_shift
         and doc.pos_profile
-        and doc.is_pos
         and doc.posa_delivery_date
         and not doc.update_stock
-        and frappe.get_value("POS Profile", doc.pos_profile, "posa_allow_sales_order")
+        and frappe.get_value("POS Profile", doc.pos_profile, "posa_allow_delivery_note")
     ):
-        sales_order_doc = make_sales_order(doc.name)
-        if sales_order_doc:
-            sales_order_doc.posa_notes = doc.posa_notes
-            sales_order_doc.flags.ignore_permissions = True
-            sales_order_doc.flags.ignore_account_permission = True
-            sales_order_doc.save()
-            sales_order_doc.submit()
+        deliverynote_doc = make_deliverynote(doc.name)
+        if deliverynote_doc:
+            deliverynote_doc.posa_notes = doc.posa_notes
+            deliverynote_doc.flags.ignore_permissions = True
+            deliverynote_doc.flags.ignore_account_permission = True
+            deliverynote_doc.save()
+            deliverynote_doc.submit()
             url = frappe.utils.get_url_to_form(
-                sales_order_doc.doctype, sales_order_doc.name
+                deliverynote_doc.doctype, deliverynote_doc.name
             )
-            msgprint = "Sales Order Created at <a href='{0}'>{1}</a>".format(
-                url, sales_order_doc.name
+            msgprint = "Delivery Note Created at <a href='{0}'>{1}</a>".format(
+                url, deliverynote_doc.name
             )
             frappe.msgprint(
-                _(msgprint), title="Sales Order Created", indicator="green", alert=True
+                _(msgprint), title="Delivery Note Created", indicator="green", alert=True
             )
             i = 0
-            for item in sales_order_doc.items:
-                doc.items[i].sales_order = sales_order_doc.name
+            for item in deliverynote_doc.items:
+                doc.items[i].deliverynote = deliverynote_doc.name
                 doc.items[i].so_detail = item.name
                 i += 1
 
 
-def make_sales_order(source_name, target_doc=None, ignore_permissions=True):
+def make_deliverynote(source_name, target_doc=None, ignore_permissions=True):
     def set_missing_values(source, target):
         target.ignore_pricing_rule = 1
         target.flags.ignore_permissions = ignore_permissions
@@ -104,14 +100,14 @@ def make_sales_order(source_name, target_doc=None, ignore_permissions=True):
         )
 
     doclist = get_mapped_doc(
-        "Sales Invoice",
+        "Delivery Note",
         source_name,
         {
-            "Sales Invoice": {
-                "doctype": "Sales Order",
+            "Delivery Note": {
+                "doctype": "Delivery Note",
             },
-            "Sales Invoice Item": {
-                "doctype": "Sales Order Item",
+            "Delivery Note Item": {
+                "doctype": "Delivery Note Item",
                 "field_map": {
                     "cost_center": "cost_center",
                     "Warehouse": "warehouse",
