@@ -81,6 +81,22 @@
                     <v-list-item-title>{{ __('About') }}</v-list-item-title>
                   </v-list-item-content>
                 </v-list-item>
+                <v-list-item @click="$emit('change-page', 'POS')">
+                  <v-list-item-icon>
+                    <v-icon>mdi-file-document-outline</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ __('Sales Invoice') }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-list-item @click="$emit('change-page', 'POD')">
+                  <v-list-item-icon>
+                    <v-icon>mdi-truck-delivery-outline</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ __('Delivery Note') }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
               </v-list-item-group>
             </v-list>
           </v-card>
@@ -144,6 +160,7 @@ export default {
   // components: {MyPopup},
   data() {
     return {
+      selectedOption: 'POS',
       drawer: false,
       mini: true,
       item: 0,

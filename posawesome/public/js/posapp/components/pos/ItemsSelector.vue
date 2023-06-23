@@ -168,6 +168,7 @@
 
 <script>
 import { evntBus } from '../../bus';
+import { detachFrom } from '../../../../../posawesome/page/posapp/onscan';
 import format from '../../format';
 import _ from 'lodash';
 export default {
@@ -190,6 +191,7 @@ export default {
     customer_price_list: null,
     new_line: false,
     qty: 1,
+    scannerDetectionData: {},
   }),
 
   watch: {
@@ -470,7 +472,7 @@ export default {
     },
     scan_barcoud() {
       const vm = this;
-      onScan.attachTo(document, {
+      onScan.attachTo(this.$el, {
         suffixKeyCodes: [],
         keyCodeMapper: function (oEvent) {
           oEvent.stopImmediatePropagation();
@@ -603,7 +605,11 @@ export default {
   },
 
   created: function () {
-    this.$nextTick(function () {});
+    this.$nextTick(function () {
+      this.scannerDetectionData = {
+        options: {}
+        };
+    });
     evntBus.$on('register_pos_profile', (data) => {
       this.pos_profile = data.pos_profile;
       this.get_items();
@@ -627,9 +633,13 @@ export default {
       this.customer_price_list = data;
     });
   },
+  beforeDestroy() {
+    detachFrom(this.$el);
+  },
 
   mounted() {
-    this.scan_barcoud();
+     // detachFrom(document); // Detach onScan.js if already attached
+     this.scan_barcoud();
   },
 };
 </script>

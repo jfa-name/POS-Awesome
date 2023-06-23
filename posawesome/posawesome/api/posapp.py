@@ -494,6 +494,57 @@ def update_invoice(data):
     invoice_doc.save()
     return invoice_doc
 
+@frappe.whitelist()
+def update_deliverynote(data):
+    data = json.loads(data)
+    if data.get("name"):
+        deliverynote_doc = frappe.get_doc("Delivery Note", data.get("name"))
+        deliverynote_doc.update(data)
+    else:
+        deliverynote_doc = frappe.get_doc(data)
+
+    deliverynote_doc.set_missing_values()
+    deliverynote_doc.flags.ignore_permissions = True
+    frappe.flags.ignore_account_permission = True
+
+    # Set the warehouse from the POS_Profile
+    pos_profile = frappe.get_cached_doc("POS Profile", deliverynote_doc.pos_profile)
+    if pos_profile and pos_profile.warehouse:
+        deliverynote_doc.set("set_warehouse", pos_profile.warehouse)
+
+    # Check if Delivery Note is a return and fetch payments from referenced document
+    if deliverynote_doc.is_return and deliverynote_doc.return_against:
+        ref_doc = frappe.get_cached_doc(deliverynote_doc.doctype, deliverynote_doc.return_against)
+        if ref_doc.payments:
+            deliverynote_doc.payments = ref_doc.payments
+            deliverynote_doc.paid_amount = ref_doc.paid_amount
+
+    allow_zero_rated_items = frappe.get_cached_value(
+        "POS Profile", deliverynote_doc.pos_profile, "posa_allow_zero_rated_items"
+    )
+    for item in deliverynote_doc.items:
+        if not item.rate or item.rate == 0:
+            if allow_zero_rated_items:
+                item.price_list_rate = 0.00
+                item.is_free_item = 1
+            else:
+                frappe.throw(
+                    _("Rate cannot be zero for item {0}").format(item.item_code)
+                )
+        else:
+            item.is_free_item = 0
+        add_taxes_from_tax_template(item, deliverynote_doc)
+
+    if frappe.get_cached_value(
+        "POS Profile", deliverynote_doc.pos_profile, "posa_tax_inclusive"
+    ):
+        if deliverynote_doc.get("taxes"):
+            for tax in deliverynote_doc.taxes:
+                tax.included_in_print_rate = 1
+
+    deliverynote_doc.save()
+    return deliverynote_doc
+
 
 @frappe.whitelist()
 def submit_invoice(invoice, data):
@@ -608,6 +659,41 @@ def submit_invoice(invoice, data):
 
     return {"name": invoice_doc.name, "status": invoice_doc.docstatus}
 
+@frappe.whitelist()
+def submit_deliverynote(deliverynote, data):
+    data = json.loads(data)
+    deliverynote = json.loads(deliverynote)
+    deliverynote_doc = frappe.get_doc("Delivery Note", deliverynote.get("name"))
+    deliverynote_doc.update(deliverynote)
+    deliverynote_doc.status = "To Bill"
+
+    if deliverynote.get("posa_delivery_date"):
+        deliverynote_doc.update_stock = 0
+
+    # Check if 'payments' attribute is present
+    if hasattr(deliverynote_doc, "payments"):
+        mop_cash_list = [
+            i.mode_of_proceed
+            for i in deliverynote_doc.payments
+            if "cash" in i.mode_of_proceed.lower() and i.type == "Cash"
+        ]
+    else:
+        mop_cash_list = []
+
+    if len(mop_cash_list) > 0:
+        cash_account = get_bank_cash_account(mop_cash_list[0], deliverynote_doc.company)
+    else:
+        cash_account = {
+            "account": frappe.get_value(
+                "Company", deliverynote_doc.company, "default_cash_account"
+            )
+        }
+
+    # Validate and save the delivery note
+    deliverynote_doc.save()
+    deliverynote_doc.submit()
+
+    return {"name": deliverynote_doc.name, "status": deliverynote_doc.status}
 
 def set_batch_nos_for_bundels(doc, warehouse_field, throw=False):
     """Automatically select `batch_no` for outgoing items in item table"""
