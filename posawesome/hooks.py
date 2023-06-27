@@ -37,6 +37,7 @@ app_include_js = [
 doctype_js = {
     "POS Profile": "posawesome/api/pos_profile.js",
     "Sales Invoice": "posawesome/api/invoice.js",
+    "Delivery Note": "posawesome/api/deliverynote.js",
     "Company": "posawesome/api/company.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
@@ -97,6 +98,11 @@ doc_events = {
         "before_submit": "posawesome.posawesome.api.invoice.before_submit",
         "before_cancel": "posawesome.posawesome.api.invoice.before_cancel",
     },
+    "Delivery Note": {
+        "validate": "posawesome.posawesome.api.deliverynote.validate",
+        "before_submit": "posawesome.posawesome.api.deliverynote.before_submit",
+        "before_cancel": "posawesome.posawesome.api.deliverynote.before_cancel",
+    },    
     "Customer": {
         "validate": "posawesome.posawesome.api.customer.validate",
         "after_insert": "posawesome.posawesome.api.customer.after_insert",
@@ -198,7 +204,11 @@ fixtures = [
                     "Sales Order-posa_additional_notes_section",
                     "Sales Order-posa_notes",
                     "Sales Order Item-posa_notes",
+                    "Delivery Note-posa_additional_notes_section",
+                    "Delivery Note-posa_notes",
+                    "Delivery Note Item-posa_notes",
                     "POS Profile-posa_allow_sales_order",
+                    "POS Profile-posa_allow_delivery_note",
                     "POS Profile-posa_column_break_112",
                     "POS Profile-posa_show_template_items",
                     "POS Profile-posa_hide_variants_items",
@@ -216,6 +226,9 @@ fixtures = [
                     "Sales Order-posa_offers",
                     "Sales Order-posa_coupons",
                     "Sales Order Item-posa_row_id",
+                    "Delivery Note-posa_offers",
+                    "Delivery Note-posa_coupons",
+                    "Delivery Note Item-posa_row_id",
                     "POS Profile-posa_tax_inclusive",
                     "POS Profile-posa_use_percentage_discount",
                     "POS Profile-posa_allow_customer_purchase_order",
@@ -236,6 +249,7 @@ fixtures = [
                     "POS Profile-posa_allow_change_posting_date",
                     "POS Profile-posa_default_card_view",
                     "POS Profile-posa_default_sales_order",
+                    "POS Profile-posa_default_delivery_note",
                     "POS Profile-column_break_dqsba",
                     "POS Profile-posa_use_server_cache",
                     "POS Profile-posa_server_cache_duration",

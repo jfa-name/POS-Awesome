@@ -65,6 +65,7 @@
 import { evntBus } from '../../bus';
 import ItemsSelector from './ItemsSelector.vue';
 import DeliveryNote from './DeliveryNote.vue';
+import Proceed from './Proceed.vue';
 import OpeningDialog from './OpeningDialog.vue';
 import PosOffers from './PosOffers.vue';
 import PosCoupons from './PosCoupons.vue';
@@ -75,7 +76,6 @@ import NewAddress from './NewAddress.vue';
 import Variants from './Variants.vue';
 import Returns from './Returns.vue';
 import MpesaPayments from './Mpesa-Payments.vue';
-import Proceed from './Proceed.vue';
 
 export default {
   data: function () {

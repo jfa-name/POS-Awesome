@@ -1114,7 +1114,7 @@ export default {
         this.discount_amount = 0;
         this.additional_discount_percentage = 0;
         this.deliverynoteType = 'Delivery Note';
-        this.deliverynoteTypes = ['Delivery Note', 'DOrder'];
+        this.deliverynoteTypes = ['Delivery Note', 'Entry'];
       } else {
         if (data.is_return) {
           evntBus.$emit('set_customer_readonly', true);
@@ -1153,6 +1153,8 @@ export default {
       }
       return old_deliverynote;
     },
+
+
 
     get_deliverynote_doc() {
       let doc = {};

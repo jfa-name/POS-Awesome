@@ -660,22 +660,35 @@ def submit_invoice(invoice, data):
     return {"name": invoice_doc.name, "status": invoice_doc.docstatus}
 
 @frappe.whitelist()
-def submit_deliverynote(deliverynote, data):
-    data = json.loads(data)
-    deliverynote = json.loads(deliverynote)
-    deliverynote_doc = frappe.get_doc("Delivery Note", deliverynote.get("name"))
-    deliverynote_doc.update(deliverynote)
+def submit_deliverynote(data):
+    data = frappe.parse_json(data)
+    deliverynote_doc = frappe.get_doc("Delivery Note", data["deliverynote"]["name"])
+    deliverynote_doc.update(data["deliverynote"])
     deliverynote_doc.status = "To Bill"
 
-    if deliverynote.get("posa_delivery_date"):
+    if deliverynote_doc.posa_delivery_date:
         deliverynote_doc.update_stock = 0
+
+    # Set the warehouse from the POS_Profile
+    pos_profile = frappe.get_cached_doc("POS Profile", deliverynote_doc.pos_profile)
+    if pos_profile and pos_profile.warehouse:
+        deliverynote_doc.set_warehouse = pos_profile.warehouse
+        for item in deliverynote_doc.items:
+            item.warehouse = pos_profile.warehouse
+
+    # Set the warehouse from the data object, if available
+    warehouse = data.get("warehouse")
+    if warehouse:
+        deliverynote_doc.set_warehouse = warehouse
+        for item in deliverynote_doc.items:
+            item.warehouse = warehouse
 
     # Check if 'payments' attribute is present
     if hasattr(deliverynote_doc, "payments"):
         mop_cash_list = [
-            i.mode_of_proceed
+            i.mode_of_payments
             for i in deliverynote_doc.payments
-            if "cash" in i.mode_of_proceed.lower() and i.type == "Cash"
+            if "cash" in i.mode_of_payments.lower() and i.type == "Cash"
         ]
     else:
         mop_cash_list = []
@@ -694,6 +707,7 @@ def submit_deliverynote(deliverynote, data):
     deliverynote_doc.submit()
 
     return {"name": deliverynote_doc.name, "status": deliverynote_doc.status}
+
 
 def set_batch_nos_for_bundels(doc, warehouse_field, throw=False):
     """Automatically select `batch_no` for outgoing items in item table"""

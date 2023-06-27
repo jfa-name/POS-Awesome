@@ -616,7 +616,7 @@
             large
             color="primary"
             dark
-            @click="submit"
+            @click="submit($event, false, false)"
             :disabled="vaildatPayment"
             >{{ __('Submit') }}</v-btn
           >
@@ -627,7 +627,7 @@
             large
             color="success"
             dark
-            @click="submit(undefined, false, true)"
+            @click="submit($event, false, true)"
             :disabled="vaildatPayment"
             >{{ __('Submit & Print') }}</v-btn
           >
@@ -719,114 +719,6 @@ export default {
       evntBus.$emit('set_customer_readonly', false);
     },
     submit(event, payment_received = false, print = false) {
-      if (!this.deliverynote_doc.is_return && this.total_payments < 0) {
-        evntBus.$emit('show_mesage', {
-          text: `Payments not correct`,
-          color: 'error',
-        });
-        frappe.utils.play_sound('error');
-        return;
-      }
-      // validate phone payment
-      // let phone_payment_is_valid = true;
-      // if (!payment_received) {
-      //   this.deliverynote_doc.payments.forEach((payment) => {
-      //     if (
-      //       payment.type == 'Phone' &&
-      //       ![0, '0', '', null, undefined].includes(payment.amount)
-      //     ) {
-      //       phone_payment_is_valid = false;
-      //     }
-      //   });
-      //   if (!phone_payment_is_valid) {
-      //     evntBus.$emit('show_mesage', {
-      //       text: __(
-      //         'Please request phone payment or use other payment method'
-      //       ),
-      //       color: 'error',
-      //     });
-      //     frappe.utils.play_sound('error');
-      //     console.error('phone payment not requested');
-      //     return;
-      //   }
-      // }
-
-      if (
-        !this.pos_profile.posa_allow_partial_payment &&
-        this.total_payments < this.deliverynote_doc.grand_total
-      ) {
-        evntBus.$emit('show_mesage', {
-          text: `The amount paid is not complete`,
-          color: 'error',
-        });
-        frappe.utils.play_sound('error');
-        return;
-      }
-
-      if (
-        this.pos_profile.posa_allow_partial_payment &&
-        !this.pos_profile.posa_allow_credit_sale &&
-        this.total_payments == 0
-      ) {
-        evntBus.$emit('show_mesage', {
-          text: `Please enter the amount paid`,
-          color: 'error',
-        });
-        frappe.utils.play_sound('error');
-        return;
-      }
-
-      if (!this.paid_change) this.paid_change = 0;
-
-      if (this.paid_change > -this.diff_payment) {
-        evntBus.$emit('show_mesage', {
-          text: `Paid change can not be greater than total change!`,
-          color: 'error',
-        });
-        frappe.utils.play_sound('error');
-        return;
-      }
-
-      let total_change = this.flt(
-        this.flt(this.paid_change) + this.flt(-this.credit_change)
-      );
-
-      if (this.is_cashback && total_change != -this.diff_payment) {
-        evntBus.$emit('show_mesage', {
-          text: `Error in change calculations!`,
-          color: 'error',
-        });
-        frappe.utils.play_sound('error');
-        return;
-      }
-
-      let credit_calc_check = this.customer_credit_dict.filter((row) => {
-        if (flt(row.credit_to_redeem))
-          return flt(row.credit_to_redeem) > flt(row.total_credit);
-        else return false;
-      });
-
-      if (credit_calc_check.length > 0) {
-        evntBus.$emit('show_mesage', {
-          text: `redeamed credit can not greater than its total.`,
-          color: 'error',
-        });
-        frappe.utils.play_sound('error');
-        return;
-      }
-
-      if (
-        !this.deliverynote_doc.is_return &&
-        this.redeemed_customer_credit > this.deliverynote_doc.grand_total
-      ) {
-        evntBus.$emit('show_mesage', {
-          text: `can not redeam customer credit more than deliverynote total`,
-          color: 'error',
-        });
-        frappe.utils.play_sound('error');
-        return;
-      }
-
       this.submit_deliverynote(print);
       this.customer_credit_dict = [];
       this.redeem_customer_credit = false;
@@ -838,30 +730,31 @@ export default {
     },
 
     submit_deliverynote(print) {
-      let data = {};
-      data['total_change'] = -this.diff_payment;
-      data['paid_change'] = this.paid_change;
-      data['credit_change'] = -this.credit_change;
-      data['redeemed_customer_credit'] = this.redeemed_customer_credit;
-      data['customer_credit_dict'] = this.customer_credit_dict;
-      data['is_cashback'] = this.is_cashback;
+      let data = {
+        deliverynote: this.deliverynote_doc, // Pass the deliverynote_doc object directly
+        total_change: -this.diff_payment,
+        paid_change: this.paid_change,
+        credit_change: -this.credit_change,
+        redeemed_customer_credit: this.redeemed_customer_credit,
+        customer_credit_dict: this.customer_credit_dict,
+        is_cashback: this.is_cashback,
+      };
 
       const vm = this;
       frappe.call({
         method: 'posawesome.posawesome.api.posapp.submit_deliverynote',
         args: {
           data: data,
-          deliverynote: this.deliverynote_doc,
         },
         async: true,
         callback: function (r) {
           if (r.message) {
             if (print) {
-              vm.load_print_page(r.message.name); // Pass the delivery note name to the load_print_page method
+              vm.load_print_page(r.message.name);
             }
             evntBus.$emit('set_last_deliverynote', vm.deliverynote_doc.name);
             evntBus.$emit('show_message', {
-              text: `Delivery Note ${r.message.name} is Submited`,
+              text: `Delivery Note ${r.message.name} is Submitted`,
               color: 'success',
             });
             frappe.utils.play_sound('submit');
@@ -870,6 +763,7 @@ export default {
         },
       });
     },
+
     set_full_amount(idx) {
       this.deliverynote_doc.payments.forEach((payment) => {
         payment.amount = payment.idx == idx ? this.deliverynote_doc.grand_total : 0;
