@@ -9,7 +9,6 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import flt
 
-
 class POSClosingShift(Document):
     def validate(self):
         other_profiles = frappe.get_all('POS Closing Shift',
