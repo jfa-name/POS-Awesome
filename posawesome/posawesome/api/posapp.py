@@ -915,6 +915,23 @@ def get_draft_invoices(pos_opening_shift):
         data.append(frappe.get_cached_doc("Sales Invoice", invoice["name"]))
     return data
 
+@frappe.whitelist()
+def get_lists_invoices(customer):
+    invoices_list = frappe.get_list(
+        "Sales Invoice",
+        filters={
+            "customer": customer,
+            "docstatus": 0,
+            "posa_is_printed": 0,
+        },
+        fields=["name"],
+        limit_page_length=0,
+        order_by="modified desc",
+    )
+    data = []
+    for invoice in invoices_list:
+        data.append(frappe.get_cached_doc("Sales Invoice", invoice["name"]).as_dict())
+    return data
 
 @frappe.whitelist()
 def delete_invoice(invoice):
