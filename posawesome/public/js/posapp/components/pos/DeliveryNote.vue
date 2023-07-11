@@ -749,8 +749,8 @@
                 class="pa-0"
                 color="warning"
                 dark
-                @click="get_draft_deliverynotes"
-                >{{ __('Held') }}</v-btn
+                @click="get_lists_deliverynote"
+                >{{ __('List') }}</v-btn
               >
             </v-col>
             <v-col cols="6" class="pa-1">
@@ -1410,6 +1410,28 @@ export default {
         }
       });
       return value;
+    },
+    get_lists_deliverynote() {
+      if (!this.customer) {
+        evntBus.$emit('show_mesage', {
+          text: __(`There is no Customer !`),
+          color: 'error',
+        });
+        return;
+      }
+      const vm = this;
+      frappe.call({
+        method: 'posawesome.posawesome.api.posapp.get_lists_deliverynote',
+        args: {
+          customer: this.customer,
+        },
+        async: false,
+        callback: function (r) {
+          if (r.message) {
+            evntBus.$emit('open_lists_dn', r.message);
+          }
+        },
+      });
     },
 
     get_draft_deliverynotes() {

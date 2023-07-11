@@ -2,6 +2,7 @@
   <div fluid>
     <ClosingDialog></ClosingDialog>
     <Drafts></Drafts>
+    <ListsDeliveryNotes></ListsDeliveryNotes>
     <Returns></Returns>
     <UpdateCustomer></UpdateCustomer>
     <NewAddress></NewAddress>
@@ -70,6 +71,7 @@ import OpeningDialog from './OpeningDialog.vue';
 import PosOffers from './PosOffers.vue';
 import PosCoupons from './PosCoupons.vue';
 import Drafts from './Drafts.vue';
+import ListsDeliveryNotes from './ListsDeliveryNotes.vue';
 import ClosingDialog from './ClosingDialog.vue';
 import UpdateCustomer from './UpdateCustomer.vue';
 import NewAddress from './NewAddress.vue';
@@ -95,6 +97,7 @@ export default {
     OpeningDialog,
     Proceed,
     Drafts,
+    ListsDeliveryNotes,
     ClosingDialog,
     UpdateCustomer,
     Returns,

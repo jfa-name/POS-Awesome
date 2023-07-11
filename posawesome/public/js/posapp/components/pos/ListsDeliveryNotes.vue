@@ -7,7 +7,7 @@
         <v-card>
           <v-card-title>
             <span class="headline primary--text">{{
-              __('Select Invoice')
+              __('Select Delivery Note')
             }}</span>
           </v-card-title>
           <v-card-text class="pa-0">
@@ -78,7 +78,7 @@
           value: 'posting_time',
         },
         {
-          text: __('Invoice'),
+          text: __('Delivery Note'),
           value: 'name',
           align: 'start',
           sortable: true,
@@ -99,19 +99,20 @@
   
       submit_dialog() {
         if (this.selected.length > 0) {
-          evntBus.$emit('print_selected_invoice', this.selected[0]);
+          evntBus.$emit('print_selected_deliverynote', this.selected[0]);
           this.listsDialog = false;
         }
       },
-      print_invoice(invoice) {
+    },
+    print_deliverynote(deliverynote) {
         const print_format =
           pos_profile.print_format_for_online ||
           pos_profile.print_format;
         const letter_head = pos_profile.letter_head || 0;
         const url =
           frappe.urllib.get_base_url() +
-          '/printview?doctype=Sales%20Invoice&name=' +
-          this.invoice_doc.name +
+          '/printview?doctype=Delivery%20Note&name=' +
+          this.deliverynote.name +
           '&trigger_print=1' +
           '&format=' +
           print_format +
@@ -127,16 +128,15 @@
           },
           true
         );
-      },
     },
     created: function () {
-      evntBus.$on('open_lists', (data) => {
+      evntBus.$on('open_lists_dn', (data) => {
         this.listsDialog = true;
         this.dialog_data = data;
       });
-      evntBus.$on('print_selected_invoice', (invoice) => {
-        this.print_invoice(invoice);
-      });
+      evntBus.$on('print_selected_deliverynote', (deliverynote) => {
+        this.print_deliverynote(deliverynote);
+      });      
     },
   };
   </script>

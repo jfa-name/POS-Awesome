@@ -934,6 +934,24 @@ def get_lists_invoices(customer):
     return data
 
 @frappe.whitelist()
+def get_lists_deliverynote(customer):
+    deliverynote_list = frappe.get_list(
+        "Delivery Note",
+        filters={
+            "customer": customer,
+            "docstatus": 0,
+            "posa_is_printed": 0,
+        },
+        fields=["name"],
+        limit_page_length=0,
+        order_by="modified desc",
+    )
+    data = []
+    for deliverynote in deliverynote_list:
+        data.append(frappe.get_cached_doc("Delivery Note", deliverynote["name"]).as_dict())
+    return data
+
+@frappe.whitelist()
 def delete_invoice(invoice):
     if frappe.get_value("Sales Invoice", invoice, "posa_is_printed"):
         frappe.throw(_("This invoice {0} cannot be deleted").format(invoice))
