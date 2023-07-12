@@ -88,7 +88,9 @@ frappe.ui.form.on('POS Closing Shift Detail', {
 
 function set_form_data (data, frm) {
 	data.forEach(d => {
-		add_to_pos_transaction(d, frm);
+		add_to_pos_transaction(d, frm, function(status) {
+            frm.refresh_field('pos_transactions')
+        });
 		frm.doc.grand_total += flt(d.grand_total);
 		frm.doc.net_total += flt(d.net_total);
 		frm.doc.total_quantity += flt(d.total_qty);
@@ -104,13 +106,17 @@ function set_form_payments_data (data, frm) {
 	});
 }
 
-function add_to_pos_transaction (d, frm) {
-	frm.add_child("pos_transactions", {
-		sales_invoice: d.name,
-		posting_date: d.posting_date,
-		grand_total: d.grand_total,
-		customer: d.customer
-	});
+function add_to_pos_transaction (d, frm, callback) {
+    get_sales_invoice_status(d.name, function(status) {
+        frm.add_child("pos_transactions", {
+            sales_invoice: d.name,
+            posting_date: d.posting_date,
+            status: d.status,
+            grand_total: d.grand_total,
+            customer: d.customer
+        });
+        callback(status);
+    });
 }
 
 function add_to_pos_payments (d, frm) {
@@ -121,6 +127,22 @@ function add_to_pos_payments (d, frm) {
 		customer: d.party,
 		mode_of_payment: d.mode_of_payment
 	});
+}
+
+function get_sales_invoice_status(sales_invoice, callback) {
+    frappe.call({
+        method: 'frappe.client.get_value',
+        args: {
+            doctype: 'Sales Invoice',
+            filters: { name: sales_invoice },
+            fieldname: 'status'
+        },
+        callback: function(response) {
+            if (response.message) {
+                callback(response.message.status);
+            }
+        }
+    });
 }
 
 function add_to_payments (d, frm) {
