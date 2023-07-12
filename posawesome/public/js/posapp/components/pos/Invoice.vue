@@ -753,11 +753,14 @@
                 >{{ __('List') }}</v-btn
               >
             </v-col>
-            <v-col cols="6" class="pa-1">
+            <v-col
+              v-if="pos_profile.posa_allow_return"
+              cols="6"
+              class="pa-1"
+              >
               <v-btn
                 block
                 class="pa-0"
-                :class="{ 'disable-events': !pos_profile.posa_allow_return }"
                 color="secondary"
                 dark
                 @click="open_returns"
@@ -791,20 +794,7 @@
                 color="success"
                 @click="show_payment"
                 dark
-                >{{ __('PAY') }}</v-btn
-              >
-            </v-col>
-            <v-col
-              cols="6"
-              class="pa-1"
-            >
-              <v-btn
-                block
-                class="pa-0"
-                color="primary"
-                @click="load_print_page"
-                dark
-                >{{ __('Print SI') }}</v-btn
+                >{{ __('Pay') }}</v-btn
               >
             </v-col>
             <v-col

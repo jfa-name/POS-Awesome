@@ -757,17 +757,6 @@
               <v-btn
                 block
                 class="pa-0"
-                :class="{ 'disable-events': !pos_profile.posa_allow_return }"
-                color="secondary"
-                dark
-                @click="open_returns"
-                >{{ __('Return') }}</v-btn
-              >
-            </v-col>
-            <v-col cols="6" class="pa-1">
-              <v-btn
-                block
-                class="pa-0"
                 color="error"
                 dark
                 @click="cancel_dialog = true"
@@ -792,20 +781,6 @@
                 @click="show_proceed"
                 dark
                 >{{ __('PROCEED') }}</v-btn
-              >
-            </v-col>
-            <v-col
-              v-if="pos_profile.posa_allow_print_draft_deliverynotes"
-              cols="6"
-              class="pa-1"
-            >
-              <v-btn
-                block
-                class="pa-0"
-                color="primary"
-                @click="print_draft_deliverynote"
-                dark
-                >{{ __('Print Draft') }}</v-btn
               >
             </v-col>
           </v-row>
