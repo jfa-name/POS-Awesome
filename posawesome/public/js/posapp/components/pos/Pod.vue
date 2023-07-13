@@ -8,7 +8,7 @@
     <NewAddress></NewAddress>
     <MpesaPayments></MpesaPayments>
     <Variants></Variants>
-    <OpeningDialog v-if="dialog" :dialog="dialog"></OpeningDialog>
+    <!-- <OpeningDialog v-if="dialog" :dialog="dialog"></OpeningDialog> -->
     <v-row v-show="!dialog">
       <v-col
         v-show="!proceed && !offers && !coupons"
@@ -67,7 +67,7 @@ import { evntBus } from '../../bus';
 import ItemsSelector from './ItemsSelector.vue';
 import DeliveryNote from './DeliveryNote.vue';
 import Proceed from './Proceed.vue';
-import OpeningDialog from './OpeningDialog.vue';
+// import OpeningDialog from './OpeningDialog.vue';
 import PosOffers from './PosOffers.vue';
 import PosCoupons from './PosCoupons.vue';
 import Drafts from './Drafts.vue';
@@ -94,7 +94,7 @@ export default {
   components: {
     ItemsSelector,
     DeliveryNote,
-    OpeningDialog,
+    // OpeningDialog,
     Proceed,
     Drafts,
     ListsDeliveryNotes,
