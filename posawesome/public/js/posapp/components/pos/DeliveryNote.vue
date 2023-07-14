@@ -24,31 +24,10 @@
     >
       <v-row align="center" class="items px-2 py-1">
         <v-col
-          v-if="pos_profile.posa_allow_sales_order"
-          cols="9"
-          class="pb-2 pr-0"
-        >
-          <Customer></Customer>
-        </v-col>
-        <v-col
-          v-if="!pos_profile.posa_allow_sales_order"
           cols="12"
           class="pb-2"
         >
           <Customer></Customer>
-        </v-col>
-        <v-col v-if="pos_profile.posa_allow_sales_order" cols="3" class="pb-2">
-          <v-select
-            dense
-            hide-details
-            outlined
-            color="primary"
-            background-color="white"
-            :items="deliverynoteTypes"
-            :label="frappe._('Type')"
-            v-model="deliverynoteType"
-            :disabled="deliverynoteType == 'Return'"
-          ></v-select>
         </v-col>
       </v-row>
 

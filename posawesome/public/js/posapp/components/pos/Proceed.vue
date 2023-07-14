@@ -22,6 +22,7 @@
               hide-details
               :value="formtCurrency(total_payments)"
               readonly
+              disabled
               :prefix="deliverynote_doc.currency"
               dense
             ></v-text-field>
@@ -530,7 +531,7 @@
             color="error"
             dark
             @click="back_to_deliverynote"
-            >{{ __('Cancel Payment') }}</v-btn
+            >{{ __('Cancel Delivery Note') }}</v-btn
           >
         </v-col>
       </v-row>
