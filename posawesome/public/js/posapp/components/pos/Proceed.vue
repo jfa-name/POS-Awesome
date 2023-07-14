@@ -446,128 +446,18 @@
           </v-row>
         </div>
         <v-divider></v-divider>
-        <v-row class="px-1 py-0" align="start" no-gutters>
-          <v-col
-            cols="6"
-            v-if="
-              pos_profile.posa_allow_write_off_change &&
-              diff_payment > 0 &&
-              !deliverynote_doc.is_return
-            "
-          >
-            <v-switch
-              class="my-0 py-0"
-              v-model="is_write_off_change"
-              flat
-              :label="frappe._('Write Off Difference Amount')"
-            ></v-switch>
-          </v-col>
-          <v-col
-            cols="6"
-            v-if="pos_profile.posa_allow_credit_sale && !deliverynote_doc.is_return"
-          >
-            <v-switch
-              v-model="is_credit_sale"
-              flat
-              :label="frappe._('Is Credit Sale')"
-              class="my-0 py-0"
-            ></v-switch>
-          </v-col>
-          <v-col
-            cols="6"
-            v-if="deliverynote_doc.is_return && pos_profile.use_cashback"
-          >
-            <v-switch
-              v-model="is_cashback"
-              flat
-              :label="frappe._('Is Cashback')"
-              class="my-0 py-0"
-            ></v-switch>
-          </v-col>
-          <v-col cols="6" v-if="is_credit_sale">
-            <v-menu
-              ref="date_menu"
-              v-model="date_menu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  v-model="deliverynote_doc.due_date"
-                  :label="frappe._('Due Date')"
-                  readonly
-                  outlined
-                  dense
-                  hide-details
-                  v-bind="attrs"
-                  v-on="on"
-                  color="primary"
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                v-model="deliverynote_doc.due_date"
-                no-title
-                scrollable
-                color="primary"
-                :min="frappe.datetime.now_date()"
-                @input="date_menu = false"
-              >
-              </v-date-picker>
-            </v-menu>
-          </v-col>
-          <v-col
-            cols="6"
-            v-if="!deliverynote_doc.is_return && pos_profile.use_customer_credit"
-          >
-            <v-switch
-              v-model="redeem_customer_credit"
-              flat
-              :label="frappe._('Use Customer Credit')"
-              class="my-0 py-0"
-              @change="get_available_credit($event)"
-            ></v-switch>
+        <v-row v-if="deliverynote_doc">
+          <div>
+            <canvas ref="signatureCanvas"></canvas>
+          </div>
+        </v-row>
+        <v-row v-if="deliverynote_doc && !deliverynote_doc.signature">
+          <v-col cols="12">
+            <v-alert type="error" outlined icon="mdi-alert">
+              Please provide a signature before validating the Delivery Note.
+            </v-alert>
           </v-col>
         </v-row>
-        <div
-          v-if="
-            deliverynote_doc &&
-            available_customer_credit > 0 &&
-            !deliverynote_doc.is_return &&
-            redeem_customer_credit
-          "
-        >
-          <v-row v-for="(row, idx) in customer_credit_dict" :key="idx">
-            <v-col cols="4">
-              <div class="pa-2 py-3">{{ row.credit_origin }}</div>
-            </v-col>
-            <v-col cols="4">
-              <v-text-field
-                dense
-                outlined
-                color="primary"
-                :label="frappe._('Available Credit')"
-                background-color="white"
-                hide-details
-                :value="formtCurrency(row.total_credit)"
-                disabled
-                :prefix="deliverynote_doc.currency"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="4">
-              <v-text-field
-                dense
-                outlined
-                color="primary"
-                :label="frappe._('Redeem Credit')"
-                background-color="white"
-                hide-details
-                type="number"
-                v-model="row.credit_to_redeem"
-                :prefix="deliverynote_doc.currency"
-              ></v-text-field>
-            </v-col>
-          </v-row>
-        </div>
         <v-divider></v-divider>
         <v-row class="pb-0 mb-2" align="start">
           <v-col cols="12">
@@ -684,6 +574,8 @@
 
 <script>
 import { evntBus } from '../../bus';
+import SignaturePad from 'signature_pad';
+
 export default {
   data: () => ({
     loading: false,
@@ -714,6 +606,33 @@ export default {
   }),
 
   methods: {
+    async validateDeliveryNote() {
+      const signatureCanvas = this.$refs.signatureCanvas;
+      const signaturePad = new SignaturePad(signatureCanvas);
+
+      if (signaturePad.isEmpty()) {
+        // Signature is missing, show an error message or validation prompt
+        return;
+      }
+
+      const signatureDataURL = signaturePad.toDataURL();
+
+      // Save the signature to the Delivery Note
+      const response = await frappe.request({
+        method: 'POST',
+        url: '/api/resource/Delivery Note/' + this.deliverynote_doc.name,
+        data: {
+          signature: signatureDataURL,
+        },
+      });
+
+      // Check the response for success or failure
+      if (response && response.data && response.data.message === 'Success') {
+        // Signature saved successfully, proceed with further actions (printing, etc.)
+      } else {
+        // Error occurred while saving the signature, handle it accordingly
+      }
+    },
     back_to_deliverynote() {
       evntBus.$emit('show_proceed', 'false');
       evntBus.$emit('set_customer_readonly', false);
@@ -785,7 +704,8 @@ export default {
         payment.amount = 0;
       });
     },
-    load_print_page() {
+    async load_print_page() {
+      await this.validateDeliveryNote();
       const print_format =
         this.pos_profile.print_format_for_online ||
         this.pos_profile.print_format;
