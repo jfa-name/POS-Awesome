@@ -414,7 +414,7 @@ def get_customer_names(pos_profile):
             """
             SELECT name, mobile_no, email_id, tax_id, customer_name, primary_address
             FROM `tabCustomer`
-            WHERE {0}
+            WHERE {0} AND disabled = 0
             ORDER by name
             """.format(
                 condition
