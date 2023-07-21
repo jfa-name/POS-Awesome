@@ -8,7 +8,10 @@ import frappe
 from frappe.utils import nowdate, flt, cstr
 from frappe import _
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
-from erpnext.stock.get_item_details import get_item_details
+from erpnext.stock.get_item_details import (
+    get_item_details,
+    get_item_tax_template,
+)
 from erpnext.accounts.doctype.pos_profile.pos_profile import get_item_groups
 from frappe.utils.background_jobs import enqueue
 from erpnext.accounts.party import get_party_bank_account
@@ -21,7 +24,7 @@ from erpnext.accounts.doctype.payment_request.payment_request import (
     get_dummy_message,
     get_existing_payment_request_amount,
 )
-from erpnext.controllers.accounts_controller import add_taxes_from_tax_template
+# from erpnext.controllers.accounts_controller import add_taxes_from_tax_template
 from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
     get_loyalty_program_details_with_points,
 )
@@ -442,6 +445,43 @@ def get_sales_person_names():
     )
     return sales_persons
 
+def add_taxes_from_tax_template(item, parent_doc):
+    add_taxes_from_item_tax_template = frappe.db.get_single_value(
+        "Accounts Settings", "add_taxes_from_item_tax_template"
+    )
+
+    if item.get("item_tax_template") and add_taxes_from_item_tax_template:
+        item_tax_template = item.get("item_tax_template")
+        taxes_template_details = frappe.get_all(
+            "Item Tax Template Detail",
+            filters={"parent": item_tax_template},
+            fields=["tax_type"],
+        )
+
+        for tax_detail in taxes_template_details:
+            tax_type = tax_detail.get("tax_type")
+            # tax_rate = flt(tax_detail.get("tax_rate"))
+
+            # add new row for tax head only if missing
+            found = any(tax.account_head == tax_type for tax in parent_doc.taxes)
+            if not found:
+                tax_row = parent_doc.append("taxes", {})
+                tax_row.update(
+                    {
+                        "description": str(tax_type).split(" - ")[0],
+                        "charge_type": "On Net Total",
+                        "account_head": tax_type,
+                        # "rate": tax_rate,
+                    }
+                )
+
+                if parent_doc.doctype == "Purchase Order":
+                    tax_row.update({"category": "Total", "add_deduct_tax": "Add"})
+                tax_row.db_insert()
+
+def get_taxes_fieldname_for_item():
+    return "taxes"
+
 
 @frappe.whitelist()
 def update_invoice(data):
@@ -482,8 +522,10 @@ def update_invoice(data):
                 )
         else:
             item.is_free_item = 0
+        
+        # Add taxes for the item using the updated add_taxes_from_tax_template method
         add_taxes_from_tax_template(item, invoice_doc)
-
+        
     if frappe.get_cached_value(
         "POS Profile", invoice_doc.pos_profile, "posa_tax_inclusive"
     ):
