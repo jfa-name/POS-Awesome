@@ -981,8 +981,8 @@ def get_lists_deliverynote(customer):
         "Delivery Note",
         filters={
             "customer": customer,
-            "docstatus": 0,
-            "posa_is_printed": 0,
+            "docstatus": 1,
+            # "posa_is_printed": 0,
         },
         fields=["name"],
         limit_page_length=0,
