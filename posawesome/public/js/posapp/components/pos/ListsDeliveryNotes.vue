@@ -56,6 +56,8 @@
     data: () => ({
       listsDialog: false,
       singleSelect: true,
+      pos_profile: '',
+      deliverynote_doc: '',
       selected: [],
       dialog_data: {},
       headers: [
@@ -95,48 +97,48 @@
     methods: {
       close_dialog() {
         this.listsDialog = false;
-      },
-  
+      },  
       submit_dialog() {
         if (this.selected.length > 0) {
           evntBus.$emit('print_selected_deliverynote', this.selected[0]);
           this.listsDialog = false;
         }
       },
-    },
-    print_deliverynote(deliverynote) {
-        const print_format =
-          pos_profile.print_format_for_online ||
-          pos_profile.print_format;
-        const letter_head = pos_profile.letter_head || 0;
-        const url =
-          frappe.urllib.get_base_url() +
-          '/printview?doctype=Delivery%20Note&name=' +
-          this.deliverynote.name +
-          '&trigger_print=1' +
-          '&format=' +
-          print_format +
-          '&no_letterhead=' +
-          letter_head;
-        const printWindow = window.open(url, 'Print');
-        printWindow.addEventListener(
-          'load',
-          function () {
-            printWindow.print();
-            // printWindow.close();
-            // NOTE : uncomoent this to auto closing printing window
-          },
-          true
-        );
-    },
-    created: function () {
-      evntBus.$on('open_lists_dn', (data) => {
-        this.listsDialog = true;
-        this.dialog_data = data;
-      });
-      evntBus.$on('print_selected_deliverynote', (deliverynote) => {
-        this.print_deliverynote(deliverynote);
-      });      
-    },
+      print_deliverynote: function (deliverynote) {
+          const print_format =
+            this.pos_profile.print_format_for_online ||
+            this.pos_profile.print_format;
+          const letter_head = this.pos_profile.letter_head || 0;
+          const url =
+            frappe.urllib.get_base_url() +
+            '/printview?doctype=Delivery%20Note&name=' +
+            deliverynote.name +
+            '&trigger_print=1' +
+            '&format=' +
+            print_format +
+            '&no_letterhead=' +
+            letter_head;
+          const printWindow = window.open(url, 'Print');
+          printWindow.addEventListener(
+            'load',
+            function () {
+              printWindow.print();
+              // printWindow.close();
+              // NOTE : uncomoent this to auto closing printing window
+            },
+            true
+          );
+        },
+      },
+      created() {
+        evntBus.$on('open_lists_dn', (data) => {
+          this.listsDialog = true;
+          this.dialog_data = data;
+        });
+        evntBus.$on('print_selected_deliverynote', (deliverynote) => {
+          this.print_deliverynote(deliverynote);
+        });      
+      },
   };
-  </script>
+  
+</script>
