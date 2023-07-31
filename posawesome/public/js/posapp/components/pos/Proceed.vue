@@ -455,13 +455,13 @@
             <v-btn block color="primary" @click="openSignatureDialog">Enter Signature</v-btn>
           </v-col>
         </v-row>
-        <v-row v-if="deliverynote_doc && !deliverynote_doc.signature">
+        <!-- <v-row v-if="deliverynote_doc && !deliverynote_doc.signature">
           <v-col cols="12">
             <v-alert type="error" outlined icon="mdi-alert">
               Please provide a signature before validating the Delivery Note.
             </v-alert>
           </v-col>
-        </v-row>
+        </v-row> -->
         <v-divider></v-divider>
         <!-- Include the SignatureInput component here -->
         <SignatureInput ref="signatureInput" @signature-entered="saveSignature" />

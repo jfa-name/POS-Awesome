@@ -1,7 +1,7 @@
 <template>
   <div fluid>
-    <ClosingDialog></ClosingDialog>
-    <Drafts></Drafts>
+    <!-- <ClosingDialog></ClosingDialog> -->
+    <!-- <Drafts></Drafts> -->
     <ListsDeliveryNotes></ListsDeliveryNotes>
     <Returns></Returns>
     <UpdateCustomer></UpdateCustomer>
@@ -73,7 +73,7 @@ import PosOffers from './PosOffers.vue';
 import PosCoupons from './PosCoupons.vue';
 import Drafts from './Drafts.vue';
 import ListsDeliveryNotes from './ListsDeliveryNotes.vue';
-import ClosingDialog from './ClosingDialog.vue';
+// import ClosingDialog from './ClosingDialog.vue';
 import UpdateCustomer from './UpdateCustomer.vue';
 import NewAddress from './NewAddress.vue';
 import Variants from './Variants.vue';
@@ -100,7 +100,7 @@ export default {
     Proceed,
     Drafts,
     ListsDeliveryNotes,
-    ClosingDialog,
+    // ClosingDialog,
     UpdateCustomer,
     Returns,
     PosOffers,
@@ -132,42 +132,42 @@ export default {
     create_opening_voucher() {
       this.dialog = true;
     },
-    get_closing_data() {
-      return frappe
-        .call(
-          'posawesome.posawesome.doctype.pos_closing_shift.pos_closing_shift.make_closing_shift_from_opening',
-          {
-            opening_shift: this.pos_opening_shift,
-          }
-        )
-        .then((r) => {
-          if (r.message) {
-            evntBus.$emit('open_ClosingDialog', r.message);
-          } else {
-            console.log(r);
-          }
-        });
-    },
-    submit_closing_pos(data) {
-      frappe
-        .call(
-          'posawesome.posawesome.doctype.pos_closing_shift.pos_closing_shift.submit_closing_shift',
-          {
-            closing_shift: data,
-          }
-        )
-        .then((r) => {
-          if (r.message) {
-            evntBus.$emit('show_mesage', {
-              text: `POS Shift Closed`,
-              color: 'success',
-            });
-            this.check_opening_entry();
-          } else {
-            console.log(r);
-          }
-        });
-    },
+    // get_closing_data() {
+    //   return frappe
+    //     .call(
+    //       'posawesome.posawesome.doctype.pos_closing_shift.pos_closing_shift.make_closing_shift_from_opening',
+    //       {
+    //         opening_shift: this.pos_opening_shift,
+    //       }
+    //     )
+    //     .then((r) => {
+    //       if (r.message) {
+    //         evntBus.$emit('open_ClosingDialog', r.message);
+    //       } else {
+    //         console.log(r);
+    //       }
+    //     });
+    // },
+    // submit_closing_pos(data) {
+    //   frappe
+    //     .call(
+    //       'posawesome.posawesome.doctype.pos_closing_shift.pos_closing_shift.submit_closing_shift',
+    //       {
+    //         closing_shift: data,
+    //       }
+    //     )
+    //     .then((r) => {
+    //       if (r.message) {
+    //         evntBus.$emit('show_mesage', {
+    //           text: `POS Shift Closed`,
+    //           color: 'success',
+    //         });
+    //         this.check_opening_entry();
+    //       } else {
+    //         console.log(r);
+    //       }
+    //     });
+    // },
     get_offers(pos_profile) {
       return frappe
         .call('posawesome.posawesome.api.posapp.get_offers', {
