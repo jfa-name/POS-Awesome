@@ -67,6 +67,7 @@ import { evntBus } from '../../bus';
 import ItemsSelector from './ItemsSelector.vue';
 import DeliveryNote from './DeliveryNote.vue';
 import Proceed from './Proceed.vue';
+import SignatureInput from './SignatureInput.vue';
 // import OpeningDialog from './OpeningDialog.vue';
 import PosOffers from './PosOffers.vue';
 import PosCoupons from './PosCoupons.vue';
@@ -95,6 +96,7 @@ export default {
     ItemsSelector,
     DeliveryNote,
     // OpeningDialog,
+    SignatureInput,
     Proceed,
     Drafts,
     ListsDeliveryNotes,

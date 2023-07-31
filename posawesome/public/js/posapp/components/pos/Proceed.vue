@@ -448,9 +448,12 @@
         </div>
         <v-divider></v-divider>
         <v-row v-if="deliverynote_doc">
-          <div>
-            <canvas ref="signatureCanvas"></canvas>
-          </div>
+          <v-col cols="12">
+            <!-- Display the signature here if it has been entered -->
+            <img v-if="deliverynote_doc.signature" :src="deliverynote_doc.signature" alt="Signature" />
+            <!-- Button to open the signature dialog -->
+            <v-btn block color="primary" @click="openSignatureDialog">Enter Signature</v-btn>
+          </v-col>
         </v-row>
         <v-row v-if="deliverynote_doc && !deliverynote_doc.signature">
           <v-col cols="12">
@@ -460,6 +463,8 @@
           </v-col>
         </v-row>
         <v-divider></v-divider>
+        <!-- Include the SignatureInput component here -->
+        <SignatureInput ref="signatureInput" @signature-entered="saveSignature" />
         <v-row class="pb-0 mb-2" align="start">
           <v-col cols="12">
             <v-autocomplete
@@ -575,9 +580,12 @@
 
 <script>
 import { evntBus } from '../../bus';
-import SignaturePad from 'signature_pad';
+import SignatureInput from './SignatureInput.vue';
 
 export default {
+  components: {
+    SignatureInput,
+  },
   data: () => ({
     loading: false,
     pos_profile: '',
@@ -604,41 +612,41 @@ export default {
     mpesa_modes: [],
     float_precision: 2,
     currency_precision: 2,
+    signatureData: '',
+    // options: {
+    //   penColor: '#c0f',
+    // },
   }),
 
   methods: {
-    async validateDeliveryNote() {
-      const signatureCanvas = this.$refs.signatureCanvas;
-      const signaturePad = new SignaturePad(signatureCanvas);
-
-      if (signaturePad.isEmpty()) {
-        // Signature is missing, show an error message or validation prompt
-        return;
+    openSignatureDialog() {
+      this.$refs.signatureInput.openSignatureDialog();
+    },
+    saveSignature(signatureDataURL) {
+      this.deliverynote_doc.signature = signatureDataURL;
+    },
+    validateDeliveryNote() {
+      if (!this.deliverynote_doc.signature) {
+        alert('Please provide a signature before validating the Delivery Note.');
+        return false;
       }
-
-      const signatureDataURL = signaturePad.toDataURL();
-
-      // Save the signature to the Delivery Note
-      const response = await frappe.request({
-        method: 'POST',
-        url: '/api/resource/Delivery Note/' + this.deliverynote_doc.name,
-        data: {
-          signature: signatureDataURL,
-        },
-      });
-
-      // Check the response for success or failure
-      if (response && response.data && response.data.message === 'Success') {
-        // Signature saved successfully, proceed with further actions (printing, etc.)
-      } else {
-        // Error occurred while saving the signature, handle it accordingly
-      }
+      return true;
+      this.clearSignature();
+    },
+    clearSignature() {
+      this.deliverynote_doc.signature = ''; // Clear the signature data
+      this.signatureData = ''; // Clear the signature data property
     },
     back_to_deliverynote() {
       evntBus.$emit('show_proceed', 'false');
       evntBus.$emit('set_customer_readonly', false);
     },
     submit(event, payment_received = false, print = false) {
+      // Call the validation method before submitting
+      if (!this.deliverynote_doc.signature) {
+        alert('Please provide a signature before validating the Delivery Note.');
+        return;
+      }
       this.submit_deliverynote(print);
       this.customer_credit_dict = [];
       this.redeem_customer_credit = false;
