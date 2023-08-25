@@ -107,15 +107,15 @@ function set_form_payments_data (data, frm) {
 }
 
 function add_to_pos_transaction (d, frm, callback) {
-    get_sales_invoice_status(d.name, function(status) {
-        frm.add_child("pos_transactions", {
-            sales_invoice: d.name,
-            posting_date: d.posting_date,
-            status: d.status,
-            grand_total: d.grand_total,
-            customer: d.customer
-        });
-        callback(status);
+    frm.add_child("pos_transactions", {
+        sales_invoice: d.name,
+        posting_date: d.posting_date,
+        status: d.status,
+        grand_total: d.grand_total,
+        customer: d.customer
+    }, function(child) {
+        // Callback executed after child record is added
+        callback(child.status);
     });
 }
 
