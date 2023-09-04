@@ -64,6 +64,22 @@
                     }}</v-list-item-title>
                   </v-list-item-content>
                 </v-list-item>
+                <v-list-item
+                  @click="print_last_invoice"
+                  v-if="
+                    pos_profile.posa_allow_print_last_deliverynotes &&
+                    this.last_deliverynote
+                  "
+                >
+                  <v-list-item-icon>
+                    <v-icon>mdi-printer</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{
+                      __('Print Last Invoice')
+                    }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
                 <v-divider class="my-0"></v-divider>
                 <v-list-item @click="logOut">
                   <v-list-item-icon>
@@ -97,7 +113,10 @@
                     <v-list-item-title>{{ __('Delivery Note') }}</v-list-item-title>
                   </v-list-item-content>
                 </v-list-item>
-                <v-list-item @click="$emit('change-page', 'Payments')">
+                <v-list-item
+                  @click="$emit('change-page', 'Payments')"
+                  v-if="pos_profile.posa_use_pos_awesome_payments"
+                >
                   <v-list-item-icon>
                     <v-icon>mdi-cash-multiple</v-icon>
                   </v-list-item-icon>
@@ -189,6 +208,7 @@ export default {
       freezeTitle: '',
       freezeMsg: '',
       last_invoice: '',
+      last_deliverynote: '',
     };
   },
   methods: {
@@ -238,6 +258,30 @@ export default {
         frappe.urllib.get_base_url() +
         '/printview?doctype=Sales%20Invoice&name=' +
         this.last_invoice +
+        '&trigger_print=1' +
+        '&format=' +
+        print_format +
+        '&no_letterhead=' +
+        letter_head;
+      const printWindow = window.open(url, 'Print');
+      printWindow.addEventListener(
+        'load',
+        function () {
+          printWindow.print();
+        },
+        true
+      );
+    },
+    print_last_deliverynote() {
+      if (!this.last_deliverynote) return;
+      const print_format =
+        this.pos_profile.print_format_for_online ||
+        this.pos_profile.print_format;
+      const letter_head = this.pos_profile.letter_head || 0;
+      const url =
+        frappe.urllib.get_base_url() +
+        '/printview?doctype=Delivery%20Note&name=' +
+        this.last_deliverynote +
         '&trigger_print=1' +
         '&format=' +
         print_format +
