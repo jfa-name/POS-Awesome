@@ -626,16 +626,16 @@ export default {
       this.deliverynote_doc.signature = signatureDataURL;
     },
     validateDeliveryNote() {
-      if (!this.deliverynote_doc.signature) {
-        alert('Please provide a signature before validating the Delivery Note.');
-        return false;
-      }
-      return true;
+      // if (!this.deliverynote_doc.signature) {
+      //   alert('Please provide a signature before validating the Delivery Note.');
+      //   return false;
+      // }
+      // return true;
       this.clearSignature();
     },
     clearSignature() {
       this.deliverynote_doc.signature = ''; // Clear the signature data
-      this.signatureData = ''; // Clear the signature data property
+      this.$refs.signatureInput.clearSignature();
     },
     back_to_deliverynote() {
       evntBus.$emit('show_proceed', 'false');
@@ -643,20 +643,19 @@ export default {
     },
     submit(event, payment_received = false, print = false) {
       // Call the validation method before submitting
-      if (!this.deliverynote_doc.signature) {
-        alert('Please provide a signature before validating the Delivery Note.');
-        return;
-      }
+      // if (!this.deliverynote_doc.signature) {
+      //  alert('Please provide a signature before validating the Delivery Note.');
+      //  return;
+      // }
+      this.clearSignature();
       this.submit_deliverynote(print);
       this.customer_credit_dict = [];
       this.redeem_customer_credit = false;
       this.is_cashback = true;
       this.sales_person = '';
-
       evntBus.$emit('new_deliverynote', 'false');
       this.back_to_deliverynote();
     },
-
     submit_deliverynote(print) {
       let data = {
         deliverynote: this.deliverynote_doc, // Pass the deliverynote_doc object directly

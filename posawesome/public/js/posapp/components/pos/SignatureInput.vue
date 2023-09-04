@@ -33,20 +33,6 @@ export default {
                 this.initializeSignaturePad();
             });
         },
-        cancelSignature() {
-            this.signatureDialog = false;
-        },
-        saveSignature() {
-            if (this.signaturePad.isEmpty()) {
-                alert('Please provide a signature before saving.');
-                return;
-            }
-
-            const signatureDataURL = this.signaturePad.toDataURL();
-            // Emit the signature data back to the parent component (Proceed.vue)
-            this.$emit('signature-entered', signatureDataURL);
-            this.signatureDialog = false;
-        },
         initializeSignaturePad() {
             const container = this.$refs.signatureContainer;
             const canvas = document.createElement('canvas');
@@ -57,8 +43,21 @@ export default {
                 penColor: '#c0f',
             });
         },
+        saveSignature() {
+            //if (this.signaturePad.isEmpty()) {
+            //    alert('Please provide a signature before saving.');
+            //    return;
+            //}
+            const signatureDataURL = this.signaturePad.toDataURL();
+            // Emit the signature data back to the parent component (Proceed.vue)
+            this.$emit('signature-entered', signatureDataURL);
+            this.signatureDialog = false;
+        },
         clearSignature() {
             this.signaturePad.clear(); // Clear the signature pad data
+        },
+        cancelSignature() {
+            this.signatureDialog = false;
         },
     },
 };
