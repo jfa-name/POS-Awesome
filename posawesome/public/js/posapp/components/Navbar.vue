@@ -97,6 +97,14 @@
                     <v-list-item-title>{{ __('Delivery Note') }}</v-list-item-title>
                   </v-list-item-content>
                 </v-list-item>
+                <v-list-item @click="$emit('change-page', 'Payments')">
+                  <v-list-item-icon>
+                    <v-icon>mdi-cash-multiple</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title>{{ __('Payments') }}</v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
               </v-list-item-group>
             </v-list>
           </v-card>
