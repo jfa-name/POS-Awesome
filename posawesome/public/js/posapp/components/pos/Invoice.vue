@@ -808,6 +808,16 @@
                 >{{ __("Print Draft") }}</v-btn
               >
             </v-col>
+            <v-col cols="6" class="pa-1">
+              <v-btn
+                block
+                class="pa-0"
+                color="warning"
+                dark
+                @click="get_lists_invoices"
+                >{{ __('List') }}</v-btn
+              >
+            </v-col>
           </v-row>
         </v-col>
       </v-row>
@@ -1441,6 +1451,29 @@ export default {
         callback: function (r) {
           if (r.message) {
             evntBus.$emit("open_drafts", r.message);
+          }
+        },
+      });
+    },
+    
+    get_lists_invoices() {
+      if (!this.customer) {
+        evntBus.$emit('show_mesage', {
+          text: __(`There is no Customer !`),
+          color: 'error',
+        });
+        return;
+      }
+      const vm = this;
+      frappe.call({
+        method: 'posawesome.posawesome.api.posapp.get_lists_invoices',
+        args: {
+          customer: this.customer,
+        },
+        async: false,
+        callback: function (r) {
+          if (r.message) {
+            evntBus.$emit('open_lists', r.message);
           }
         },
       });

@@ -50,6 +50,7 @@
   <script>
   import { evntBus } from '../../bus';
   import format from '../../format';
+  import { customSort } from '../../customSort';
   export default {
     // props: ["ListsDialog"],
     mixins: [format],
@@ -136,11 +137,15 @@
           true
         );
       },
+      sortByStatus() {
+        this.dialog_data = customSort(this.dialog_data);
+      },
     },
     created: function () {
       evntBus.$on('open_lists', (data) => {
         this.listsDialog = true;
         this.dialog_data = data;
+        this.sortByStatus();
       });
       evntBus.$on('print_selected_invoice', (invoice) => {
         this.print_invoice(invoice);
