@@ -815,7 +815,9 @@
                 color="warning"
                 dark
                 @click="get_lists_invoices"
-                >{{ __('List') }}</v-btn
+              >
+                {{ listButtonLabel }}
+              </v-btn
               >
             </v-col>
           </v-row>
@@ -829,6 +831,7 @@
 import { evntBus } from "../../bus";
 import format from "../../format";
 import Customer from "./Customer.vue";
+import ListsInvoices from "./ListsInvoices.vue";
 
 export default {
   mixins: [format],
@@ -859,6 +862,7 @@ export default {
       float_precision: 2,
       currency_precision: 2,
       new_line: false,
+      buttonLabel: this.listButtonLabel,
       delivery_charges: [],
       delivery_charges_rate: 0,
       selcted_delivery_charges: {},
@@ -916,6 +920,18 @@ export default {
         sum += flt(item.qty) * flt(item.discount_amount);
       });
       return this.flt(sum, this.float_precision);
+    },
+    listButtonLabel() {
+      if (this.dialog_data && this.dialog_data.length > 0) {
+        const unpaidInvoiceCount = this.dialog_data.filter(
+          (item) => item.status === 'Unpaid'
+        ).length;
+        return unpaidInvoiceCount
+          ? `${__('List')} (${unpaidInvoiceCount} ${__('Unpaid')})`
+          : `${__('List')}`;
+      } else {
+        return `${__('List')}`;
+      }
     },
   },
 
@@ -2788,6 +2804,9 @@ export default {
       } else {
         this.additional_discount_percentage = 0;
       }
+    },
+    dialog_data(newDialogData) {
+      this.buttonLabel = this.listButtonLabel;
     },
   },
 };

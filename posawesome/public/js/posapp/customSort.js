@@ -1,5 +1,5 @@
 export function customSort(items) {
-  const statuses = ['Unpaid', 'Partly Paid', 'Paid', /* Add other statuses here */];
+  const statuses = ['Unpaid', 'Overdue', 'Partly Paid', 'Paid', /* Add other statuses here */];
   return items.sort((a, b) => {
     const statusA = statuses.indexOf(a.status);
     const statusB = statuses.indexOf(b.status);

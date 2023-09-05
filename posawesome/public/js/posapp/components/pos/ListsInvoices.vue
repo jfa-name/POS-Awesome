@@ -51,6 +51,7 @@
   import { evntBus } from '../../bus';
   import format from '../../format';
   import { customSort } from '../../customSort';
+
   export default {
     // props: ["ListsDialog"],
     mixins: [format],
@@ -60,7 +61,7 @@
       pos_profile: '',
       invoice_doc: '',
       selected: [],
-      dialog_data: {},
+      dialog_data: [],
       headers: [
         {
           text: __('Customer'),
@@ -147,6 +148,7 @@
         this.dialog_data = data;
         this.sortByStatus();
       });
+      
       evntBus.$on('print_selected_invoice', (invoice) => {
         this.print_invoice(invoice);
       });
