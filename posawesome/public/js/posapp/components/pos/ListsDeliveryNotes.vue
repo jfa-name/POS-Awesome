@@ -106,7 +106,7 @@
       },
       print_deliverynote: function (deliverynote) {
           const print_format =
-            this.pos_profile.print_format_for_online ||
+            this.pos_profile.print_format_for_online_dn ||
             this.pos_profile.print_format_dn;
           const letter_head = this.pos_profile.letter_head || 0;
           const url =
