@@ -115,7 +115,7 @@
             deliverynote.name +
             '&trigger_print=1' +
             '&format=' +
-            print_format +
+            'POS Delivery Note' +
             '&no_letterhead=' +
             letter_head;
           const printWindow = window.open(url, 'Print');

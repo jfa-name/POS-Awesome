@@ -124,9 +124,10 @@
           invoice.name +
           '&trigger_print=1' +
           '&format=' +
-          print_format +
+          'Factura POS' +
           '&no_letterhead=' +
-          letter_head;
+          letter_head +
+          '& settings={ }& _lang=es';
         const printWindow = window.open(url, 'Print');
         printWindow.addEventListener(
           'load',
