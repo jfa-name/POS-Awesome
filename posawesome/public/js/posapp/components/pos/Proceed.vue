@@ -464,7 +464,7 @@
         </v-row> -->
         <v-divider></v-divider>
         <!-- Include the SignatureInput component here -->
-        <SignatureInput ref="signatureInput" @signature-entered="saveSignature" />
+        <signature-input ref="signatureInput" @signature-entered="saveSignature"></signature-input>
         <v-row class="pb-0 mb-2" align="start">
           <v-col cols="12">
             <v-autocomplete
@@ -482,7 +482,6 @@
               :no-data-text="__('Sales Person not found')"
               hide-details
               :filter="salesPersonFilter"
-              :disabled="readonly"
             >
               <template v-slot:item="data">
                 <template>
@@ -613,9 +612,6 @@ export default {
     float_precision: 2,
     currency_precision: 2,
     signatureData: '',
-    // options: {
-    //   penColor: '#c0f',
-    // },
   }),
 
   methods: {
@@ -626,12 +622,11 @@ export default {
       this.deliverynote_doc.signature = signatureDataURL;
     },
     validateDeliveryNote() {
-      // if (!this.deliverynote_doc.signature) {
-      //   alert('Please provide a signature before validating the Delivery Note.');
-      //   return false;
-      // }
-      // return true;
-      this.clearSignature();
+      if (!this.deliverynote_doc.signature) {
+        alert('Please provide a signature before validating the Delivery Note.');
+        return false;
+      }
+      return true;
     },
     clearSignature() {
       this.deliverynote_doc.signature = ''; // Clear the signature data
@@ -643,11 +638,9 @@ export default {
     },
     submit(event, payment_received = false, print = false) {
       // Call the validation method before submitting
-      // if (!this.deliverynote_doc.signature) {
-      //  alert('Please provide a signature before validating the Delivery Note.');
-      //  return;
-      // }
-      this.clearSignature();
+      if (!this.validateDeliveryNote()) {
+        return;
+      }
       this.submit_deliverynote(print);
       this.customer_credit_dict = [];
       this.redeem_customer_credit = false;
