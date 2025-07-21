@@ -1,0 +1,160 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "field:route_name",
+ "beta": 1,
+ "creation": "2025-07-15 16:04:42.953855",
+ "default_view": "List",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "route_name",
+  "column_break0",
+  "week_day_index",
+  "monday",
+  "monday_table",
+  "tuesday",
+  "tuesday_table",
+  "wednesday",
+  "wednesday_table",
+  "thursday",
+  "thursday_table",
+  "friday",
+  "friday_table"
+ ],
+ "fields": [
+  {
+   "fieldname": "route_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Nombre de la ruta de reparto",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "week_day_index",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "\u00cdndice de d\u00eda de la semana"
+  },
+  {
+   "fieldname": "column_break0",
+   "fieldtype": "Column Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "monday_table",
+   "fieldtype": "Table",
+   "options": "Delivery Route Table"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "monday_table",
+   "fieldname": "monday",
+   "fieldtype": "Section Break",
+   "label": "Lunes"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "tuesday_table",
+   "fieldname": "tuesday",
+   "fieldtype": "Section Break",
+   "label": "Martes"
+  },
+  {
+   "fieldname": "tuesday_table",
+   "fieldtype": "Table",
+   "options": "Delivery Route Table"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "wednesday_table",
+   "fieldname": "wednesday",
+   "fieldtype": "Section Break",
+   "label": "Mi\u00e9rcoles"
+  },
+  {
+   "fieldname": "wednesday_table",
+   "fieldtype": "Table",
+   "options": "Delivery Route Table"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "thursday_table",
+   "fieldname": "thursday",
+   "fieldtype": "Section Break",
+   "label": "Jueves"
+  },
+  {
+   "fieldname": "thursday_table",
+   "fieldtype": "Table",
+   "options": "Delivery Route Table"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "friday_table",
+   "fieldname": "friday",
+   "fieldtype": "Section Break",
+   "label": "Viernes"
+  },
+  {
+   "fieldname": "friday_table",
+   "fieldtype": "Table",
+   "options": "Delivery Route Table"
+  }
+ ],
+ "icon": "fa fa-track",
+ "links": [],
+ "modified": "2025-07-21 16:04:42.953855",
+ "modified_by": "Administrator",
+ "module": "POSAwesome",
+ "name": "Delivery Route",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Stock Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "route_name",
+ "show_name_in_global_search": 1,
+ "sort_field": "modified",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1,
+ "translated_doctype": 1
+}

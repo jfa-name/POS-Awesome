@@ -1,0 +1,124 @@
+{
+ "actions": [],
+ "beta": 1,
+ "creation": "2025-07-15 17:17:42.843545",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "customer_name",
+  "shipping_address_name",
+  "preferred_selling_document",
+  "order_type",
+  "observation",
+  "full_open",
+  "primary_address",
+  "mobile_no",
+  "territory",
+  "customer_group"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Link",
+   "in_filter": 1,
+   "in_list_view": 1,
+   "label": "Cliente",
+   "options": "Customer",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "columns": 1,
+   "fetch_from": "customer_name.preferred_selling_document",
+   "fieldname": "preferred_selling_document",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Documento de Entrega",
+   "translatable": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "order_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "V\u00eda Pedido",
+   "options": "\nIn Situ\nEmail\nWhatsapp\nArabaycoffee"
+  },
+  {
+   "columns": 1,
+   "fetch_from": "customer_name.customer_details",
+   "fieldname": "observation",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Observaciones"
+  },
+  {
+   "columns": 1,
+   "fieldname": "full_open",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Abierto 01/23",
+   "options": "No\nYes"
+  },
+  {
+   "columns": 1,
+   "fetch_from": "customer_name.mobile_no",
+   "fieldname": "mobile_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Contacto de cliente"
+  },
+  {
+   "columns": 1,
+   "fetch_from": "shipping_address_name.city",
+   "fieldname": "territory",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Direcci\u00f3n Cliente",
+   "translatable": 1
+  },
+  {
+   "columns": 1,
+   "fetch_from": "customer_name.customer_group",
+   "fieldname": "customer_group",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Grupo Clientes",
+   "translatable": 1
+  },
+  {
+   "columns": 1,
+   "fetch_from": "customer_name.customer_primary_address",
+   "fieldname": "shipping_address_name",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Shipping Address Name",
+   "options": "Address",
+   "print_hide": 1,
+   "search_index": 1
+  },
+  {
+   "columns": 1,
+   "fetch_from": "customer_name.primary_address",
+   "fieldname": "primary_address",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Primary Address",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-21 16:26:43.910078",
+ "modified_by": "Administrator",
+ "module": "POSAwesome",
+ "name": "Delivery Route Table",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
