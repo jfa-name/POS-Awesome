@@ -87,6 +87,7 @@ frappe.ui.form.on('POS Closing Shift Detail', {
 });
 
 function set_form_data (data, frm) {
+	frm.set_value("pos_transactions", []);
 	data.forEach(d => {
 		add_to_pos_transaction(d, frm, function(status) {
             frm.refresh_field('pos_transactions')
