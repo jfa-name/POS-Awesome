@@ -112,7 +112,8 @@ function add_to_pos_transaction (d, frm, callback) {
         posting_date: d.posting_date,
         status: d.status,
         grand_total: d.grand_total,
-        customer: d.customer
+        customer: d.customer,
+		mode_of_payment: d.mode_of_payment
     }, function(child) {
         // Callback executed after child record is added
         callback(child.status);

@@ -108,9 +108,16 @@ def get_pos_invoices(pos_opening_shift):
         as_dict=1,
     )
 
-    data = [frappe.get_doc("Sales Invoice", d.name).as_dict() for d in data]
+    result = []
+    for d in data:
+        invoice = frappe.get_doc("Sales Invoice", d.name)
+        # Obtener el primer modo de pago
+        main_mode_of_payment = invoice.payments[0].mode_of_payment if getattr(invoice, "payments", None) and len(invoice.payments) > 0 else ""
+        invoice_dict = invoice.as_dict()
+        invoice_dict["mode_of_payment"] = main_mode_of_payment
+        result.append(invoice_dict)
 
-    return data
+    return result
 
 
 @frappe.whitelist()
@@ -166,6 +173,7 @@ def make_closing_shift_from_opening(opening_shift):
         )
 
     for d in invoices:
+        main_mode_of_payment = d["payments"][0]["mode_of_payment"] if d.get("payments") and len(d["payments"]) > 0 else ""
         pos_transactions.append(
             frappe._dict(
                 {
@@ -174,6 +182,7 @@ def make_closing_shift_from_opening(opening_shift):
                     "posting_date": d.posting_date,
                     "grand_total": d.grand_total,
                     "customer": d.customer,
+                    "mode_of_payment": main_mode_of_payment,
                 }
             )
         )
