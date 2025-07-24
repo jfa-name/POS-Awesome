@@ -127,7 +127,20 @@ function add_to_pos_payments (d, frm) {
 		posting_date: d.posting_date,
 		paid_amount: d.paid_amount,
 		customer: d.party,
-		mode_of_payment: d.mode_of_payment
+		mode_of_payment: d.mode_of_payment,
+		references: d.references || []
+	}, function(child) {
+		// Callback executed after child record is added
+		get_sales_invoice_status(d.sales_invoice, function(status) {
+			child.status = status;
+			if (status === "Paid") {
+				child.paid_amount = d.paid_amount;
+			} else {
+				child.paid_amount = 0;
+			}
+			add_pos_payment_to_payments(child, frm);
+		});
+		frm.refresh_field('pos_payments');
 	});
 }
 

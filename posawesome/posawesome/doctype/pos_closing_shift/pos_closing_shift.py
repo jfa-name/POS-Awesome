@@ -122,7 +122,7 @@ def get_pos_invoices(pos_opening_shift):
 
 @frappe.whitelist()
 def get_payments_entries(pos_opening_shift):
-    return frappe.get_all(
+    payment_entries = frappe.get_all(
         "Payment Entry",
         filters={
             "docstatus": 1,
@@ -138,6 +138,22 @@ def get_payments_entries(pos_opening_shift):
             "party",
         ],
     )
+
+    result = []
+
+    for pe in payment_entries:
+        references = frappe.get_all(
+            "Payment Entry Reference",
+            filters={"parent": pe["name"]},
+            fields=["reference_doctype", "reference_name"],
+        )
+        invoice_refs = [
+            r["reference_name"] for r in references if r["reference_doctype"] == "Sales Invoice"
+        ]
+        pe["references"] = ", ".join(invoice_refs) if invoice_refs else ""
+        result.append(pe)
+    
+    return result
 
 
 @frappe.whitelist()
