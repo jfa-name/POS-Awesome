@@ -70,6 +70,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "fetch_from": "pos_profile.company",
    "fieldname": "company",
    "fieldtype": "Link",
    "label": "Company",
@@ -200,7 +201,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2023-06-12 03:01:49.146706",
+ "modified": "2025-07-24 12:34:53.161871",
  "modified_by": "Administrator",
  "module": "POSAwesome",
  "name": "POS Closing Shift",
