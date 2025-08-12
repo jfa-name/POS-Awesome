@@ -181,6 +181,10 @@ export default {
         evntBus.$emit('set_pos_settings', doc);
       });
     },
+    clearCart() {
+      this.items = [];
+      this.invoice_items = [];
+    },
   },
 
   mounted: function () {
@@ -218,6 +222,9 @@ export default {
       evntBus.$on('submit_closing_pos', (data) => {
         this.submit_closing_pos(data);
       });
+      evntBus.$on('clear_cart', () => {
+        this.clearCart();
+      });
     });
   },
   beforeDestroy() {
@@ -228,6 +235,7 @@ export default {
     evntBus.$off('show_coupons');
     evntBus.$off('open_closing_dialog');
     evntBus.$off('submit_closing_pos');
+    evntBus.$off('clear_cart');
   },
 };
 </script>

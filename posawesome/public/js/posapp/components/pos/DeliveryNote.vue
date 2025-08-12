@@ -773,6 +773,7 @@
 import { evntBus } from "../../bus";
 import format from "../../format";
 import Customer from "./Customer.vue";
+import CustomerPlus from "./CustomerPlus.vue";
 
 export default {
   mixins: [format],
@@ -825,6 +826,7 @@ export default {
   },
 
   components: {
+    CustomerPlus,
     Customer,
   },
 
@@ -2590,6 +2592,10 @@ export default {
         this.delivery_charges_rate = 0;
       }
     },
+    clearCart() {
+      this.items = [];
+      this.invoice_items = [];
+    },
   },
 
   mounted() {
@@ -2649,6 +2655,9 @@ export default {
     evntBus.$on("set_new_line", (data) => {
       this.new_line = data;
     });
+    evntBus.$on('clear_cart', () => {
+      this.clearCart();
+    });
     document.addEventListener("keydown", this.shortOpenPayment.bind(this));
     document.addEventListener("keydown", this.shortDeleteFirstItem.bind(this));
     document.addEventListener("keydown", this.shortOpenFirstItem.bind(this));
@@ -2664,6 +2673,7 @@ export default {
     evntBus.$off("update_deliverynote_offers");
     evntBus.$off("update_deliverynote_coupons");
     evntBus.$off("set_all_items");
+    evntBus.$off('clear_cart');
   },
   destroyed() {
     document.removeEventListener("keydown", this.shortOpenPayment);

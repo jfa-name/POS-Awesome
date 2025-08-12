@@ -185,6 +185,10 @@ export default {
         evntBus.$emit('set_pos_settings', doc);
       });
     },
+    clearCart() {
+      this.items = [];
+      this.invoice_items = [];
+    },
   },
 
   created: function () {
@@ -223,6 +227,16 @@ export default {
         this.submit_closing_pos(data);
       });
     });
+  },
+  mounted: function () {
+    this.$nextTick(function () {
+      evntBus.$on('clear_cart', () => {
+        this.clearCart();
+      });
+    });
+  },
+  beforeDestroy() {
+    evntBus.$off('clear_cart');
   },
 };
 </script>

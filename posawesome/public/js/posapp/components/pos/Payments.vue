@@ -590,7 +590,6 @@
               :no-data-text="__('Sales Person not found')"
               hide-details
               :filter="salesPersonFilter"
-              :disabled="readonly"
             >
               <template v-slot:item="data">
                 <template>

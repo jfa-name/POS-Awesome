@@ -38,7 +38,6 @@
             :headers="items_headers"
             :items="posa_coupons"
             :single-expand="singleExpand"
-            :expanded.sync="expanded"
             item-key="coupon"
             class="elevation-1"
             :items-per-page="itemsPerPage"
@@ -218,23 +217,23 @@ export default {
         this.pos_profile = data.pos_profile;
       });
     });
-    evntBus.$on('update_customer', (customer) => {
-      if (this.customer != customer) {
-        const to_remove = [];
-        this.posa_coupons.forEach((el) => {
-          if (el.type == 'Promotional') {
-            el.customer = customer;
-          } else {
-            to_remove.push(el.coupon);
-          }
-        });
-        this.customer = customer;
-        if (to_remove.length) {
-          this.removeCoupon(to_remove);
-        }
-      }
-      this.setActiveGiftCoupons();
-    });
+    // evntBus.$on('update_customer', (customer) => {
+    //   if (this.customer != customer) {
+    //     const to_remove = [];
+    //     this.posa_coupons.forEach((el) => {
+    //       if (el.type == 'Promotional') {
+    //         el.customer = customer;
+    //       } else {
+    //         to_remove.push(el.coupon);
+    //       }
+    //     });
+    //     this.customer = customer;
+    //     if (to_remove.length) {
+    //       this.removeCoupon(to_remove);
+    //     }
+    //   }
+    //   this.setActiveGiftCoupons();
+    // });
     evntBus.$on('update_pos_coupons', (data) => {
       this.updatePosCoupons(data);
     });
