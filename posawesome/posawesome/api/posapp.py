@@ -1829,6 +1829,7 @@ def get_customer_info(customer):
     res["gender"] = customer.gender
     res["tax_id"] = customer.tax_id
     res["posa_discount"] = customer.posa_discount
+    res["preferred_selling_document"] = customer.preferred_selling_document
     res["name"] = customer.name
     res["customer_name"] = customer.customer_name
     res["customer_group_price_list"] = frappe.get_value(
@@ -1847,6 +1848,64 @@ def get_customer_info(customer):
 
     return res
 
+# @frappe.whitelist()
+# def get_ordered_customers_by_route(route_name, weekday):
+#     # weekday: 'monday', 'tuesday', etc.
+#     route = frappe.get_doc("Delivery Route", route_name)
+#     table_field = f"{weekday}_table"
+#     customers = []
+#     if hasattr(route, table_field):
+#         table = getattr(route, table_field)
+#         for row in table:
+#             customer = frappe.get_doc("Customer", row.customer_name)
+#             customers.append({
+#                 "name": customer.name,
+#                 "customer_name": customer.customer_name,
+#                 "mobile_no": customer.mobile_no,
+#                 "email_id": customer.email_id,
+#                 "tax_id": customer.tax_id,
+#                 "primary_address": customer.primary_address,
+#                 "preferred_selling_document": row.preferred_selling_document,
+#                 # otros campos
+#             })
+#     return customers
+
+@frappe.whitelist()
+def get_ordered_customers_by_route(route_name, weekday):
+    frappe.logger().debug(f"get_ordered_customers_by_route: route={route_name}, weekday={weekday}")
+    
+    try:
+        route = frappe.get_doc("Delivery Route", route_name)
+        table_field = f"{weekday}_table"
+        
+        frappe.logger().debug(f"Checking table field: {table_field}")
+        
+        if not hasattr(route, table_field):
+            frappe.logger().error(f"Table field {table_field} not found in route")
+            return []
+            
+        table = getattr(route, table_field)
+        customers = []
+        
+        for row in table:
+            frappe.logger().debug(f"Processing customer: {row.customer_name}")
+            customer = frappe.get_doc("Customer", row.customer_name)
+            customers.append({
+                "name": customer.name,
+                "customer_name": customer.customer_name,
+                "mobile_no": customer.mobile_no,
+                "email_id": customer.email_id,
+                "tax_id": customer.tax_id,
+                "primary_address": customer.primary_address,
+                "preferred_selling_document": row.preferred_selling_document,
+            })
+            
+        frappe.logger().debug(f"Returning {len(customers)} customers")
+        return customers
+        
+    except Exception as e:
+        frappe.logger().error(f"Error in get_ordered_customers_by_route: {str(e)}")
+        frappe.throw(f"Error getting customers: {str(e)}")
 
 def get_company_domain(company):
     return frappe.get_cached_value("Company", cstr(company), "domain")

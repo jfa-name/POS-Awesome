@@ -831,6 +831,7 @@
 import { evntBus } from "../../bus";
 import format from "../../format";
 import Customer from "./Customer.vue";
+import CustomerPlus from "./CustomerPlus.vue";
 import ListsInvoices from "./ListsInvoices.vue";
 
 export default {
@@ -885,6 +886,7 @@ export default {
   },
 
   components: {
+    CustomerPlus,
     Customer,
   },
 
