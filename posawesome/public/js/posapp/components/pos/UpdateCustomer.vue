@@ -148,12 +148,16 @@
                 ></v-text-field>
               </v-col>
               <v-col cols="12" v-if="customer_details">
-                <v-text-field
+                <v-textarea
                   v-model="customer_details"
                   :label="frappe._('Customer Details')"
-                  dense
                   readonly
-                ></v-text-field>
+                  outlined
+                  dense
+                  rows="4"
+                  auto-grow
+                  hide-details
+                ></v-textarea>
               </v-col>
             </v-row>
           </v-container>
