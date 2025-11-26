@@ -1003,6 +1003,16 @@ def get_lists_invoices(customer):
             "Sales Invoice", invoice["name"]).as_dict())
     return data
 
+@frappe.whitelist()
+def get_unpaid_invoices_count(customer):
+    """Obtiene el número de facturas sin pagar de un cliente"""
+    count = frappe.db.count('Sales Invoice', {
+        'customer': customer,
+        'docstatus': 1,
+        'status': ['in', ['Overdue', 'Unpaid']],
+        'outstanding_amount': ['>', 0]
+    })
+    return count
 
 @frappe.whitelist()
 def get_lists_deliverynote(customer):

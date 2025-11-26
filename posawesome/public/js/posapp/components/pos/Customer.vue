@@ -127,6 +127,19 @@ export default {
         textFifth.indexOf(searchText) > -1
       );
     },
+    check_unpaid_invoices(customer_name) {
+      frappe.call({
+        method: 'posawesome.posawesome.api.posapp.get_unpaid_invoices_count',
+        args: {
+          customer: customer_name,
+        },
+        callback: (r) => {
+          if (r.message && r.message > 0) {
+            evntBus.$emit('show_unpaid_invoices_alert', r.message);
+          }
+        },
+      });
+    },
   },
 
   computed: {},
@@ -160,8 +173,25 @@ export default {
   },
 
   watch: {
-    customer() {
-      evntBus.$emit('update_customer', this.customer);
+    customer(newValue) {
+      if (!newValue) {
+        return;
+      }
+      
+      evntBus.$emit('update_customer', newValue);
+      
+      // Buscar el cliente seleccionado en la lista
+      const selectedCustomer = this.customers.find(c => c.name === newValue);
+      
+      if (selectedCustomer) {
+        this.customer_info = {
+          name: selectedCustomer.name,
+          customer_name: selectedCustomer.customer_name,
+        };
+        
+        // Verificar facturas pendientes
+        this.check_unpaid_invoices(newValue);
+      }
     },
   },
 };

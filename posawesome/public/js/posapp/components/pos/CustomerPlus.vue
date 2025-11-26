@@ -187,6 +187,19 @@ export default {
         textFifth.indexOf(searchText) > -1
       );
     },
+    check_unpaid_invoices(customer_name) {
+      frappe.call({
+        method: 'posawesome.posawesome.api.posapp.get_unpaid_invoices_count',
+        args: {
+          customer: customer_name,
+        },
+        callback: (r) => {
+          if (r.message && r.message > 0) {
+            evntBus.$emit('show_unpaid_invoices_alert', r.message);
+          }
+        },
+      });
+    },
   },
 
   computed: {},
@@ -229,12 +242,10 @@ export default {
         return;
       }
       
-      // Encuentra el cliente completo en la lista
       const selectedCustomer = this.customers.find(c => c.name === newValue);
       console.log("Cliente seleccionado:", selectedCustomer);
       
       if (selectedCustomer) {
-        // Asegúrate de que el cliente tiene todas las propiedades necesarias
         const customer = {
           name: selectedCustomer.name,
           customer_name: selectedCustomer.customer_name,
@@ -242,12 +253,12 @@ export default {
         };
         console.log("Emitiendo eventos con cliente:", customer);
         
-        // Emite el evento con el objeto cliente simplificado
         this.$emit('customer-selected', customer);
         evntBus.$emit('customer_selected', customer);
-        
-        // Actualiza customer_info
         this.customer_info = customer;
+        
+        // Verificar facturas pendientes
+        this.check_unpaid_invoices(customer.name);
       }
     },
   },
