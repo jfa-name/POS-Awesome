@@ -107,7 +107,19 @@ export default {
       evntBus.$emit('open_update_customer', null);
     },
     edit_customer() {
-      evntBus.$emit('open_update_customer', this.customer_info);
+      // Cargar datos completos del cliente antes de editar
+      const vm = this;
+      frappe.call({
+        method: 'posawesome.posawesome.api.posapp.get_customer_details',
+        args: {
+          customer_name: this.customer_info.name,
+        },
+        callback: function (r) {
+          if (r.message) {
+            evntBus.$emit('open_update_customer', r.message);
+          }
+        },
+      });
     },
     customFilter(item, queryText, itemText) {
       const textOne = item.customer_name

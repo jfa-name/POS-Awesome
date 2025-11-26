@@ -66,16 +66,6 @@
                 ></v-select>
               </v-col>
               <v-col cols="6">
-                <v-text-field
-                  dense
-                  color="primary"
-                  :label="frappe._('Referral Code')"
-                  background-color="white"
-                  hide-details
-                  v-model="referral_code"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="6">
                 <v-menu
                   ref="birthday_menu"
                   v-model="birthday_menu"
@@ -157,6 +147,14 @@
                   hide-details
                 ></v-text-field>
               </v-col>
+              <v-col cols="12" v-if="customer_details">
+                <v-text-field
+                  v-model="customer_details"
+                  :label="frappe._('Customer Details')"
+                  dense
+                  readonly
+                ></v-text-field>
+              </v-col>
             </v-row>
           </v-container>
         </v-card-text>
@@ -185,7 +183,6 @@ export default {
     tax_id: '',
     mobile_no: '',
     email_id: '',
-    referral_code: '',
     birthday: null,
     birthday_menu: false,
     group: '',
@@ -195,6 +192,7 @@ export default {
     genders: [],
     customer_type: 'Individual',
     gender: '',
+    customer_details: '',
     loyalty_points: null,
     loyalty_program: null,
   }),
@@ -209,13 +207,13 @@ export default {
       this.tax_id = '';
       this.mobile_no = '';
       this.email_id = '';
-      this.referral_code = '';
       this.birthday = '';
       this.group = frappe.defaults.get_user_default('Customer Group');
       this.territory = frappe.defaults.get_user_default('Territory');
       this.customer_id = '';
       this.customer_type = 'Individual';
       this.gender = '';
+      this.customer_details = '';
       this.loyalty_points = null;
       this.loyalty_program = null;
     },
@@ -302,12 +300,12 @@ export default {
           tax_id: this.tax_id,
           mobile_no: this.mobile_no,
           email_id: this.email_id,
-          referral_code: this.referral_code,
           birthday: this.birthday,
           customer_group: this.group,
           territory: this.territory,
           customer_type: this.customer_type,
           gender: this.gender,
+          customer_details: this.customer_details,
           method: this.customer_id ? 'update' : 'create',
           pos_profile_doc: this.pos_profile,
         };
@@ -352,13 +350,13 @@ export default {
         this.tax_id = data.tax_id;
         this.mobile_no = data.mobile_no;
         this.email_id = data.email_id;
-        this.referral_code = data.referral_code;
         this.birthday = data.birthday;
         this.group = data.customer_group;
         this.territory = data.territory;
         this.loyalty_points = data.loyalty_points;
         this.loyalty_program = data.loyalty_program;
         this.gender = data.gender;
+        this.customer_details = data.customer_details;
       }
     });
     evntBus.$on('register_pos_profile', (data) => {

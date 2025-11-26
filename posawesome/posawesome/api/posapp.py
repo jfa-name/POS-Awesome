@@ -1198,7 +1198,6 @@ def create_customer(
     tax_id=None,
     mobile_no=None,
     email_id=None,
-    referral_code=None,
     birthday=None,
     customer_group=None,
     territory=None,
@@ -1219,7 +1218,6 @@ def create_customer(
                     "tax_id": tax_id,
                     "mobile_no": mobile_no,
                     "email_id": email_id,
-                    "posa_referral_code": referral_code,
                     "posa_birthday": birthday,
                     "customer_type": customer_type,
                     "gender": gender,
@@ -1243,7 +1241,6 @@ def create_customer(
         customer_doc.customer_name = customer_name
         customer_doc.posa_referral_company = company
         customer_doc.tax_id = tax_id
-        customer_doc.posa_referral_code = referral_code
         customer_doc.posa_birthday = birthday
         customer_doc.customer_type = customer_type
         customer_doc.territory = territory
@@ -1998,3 +1995,20 @@ def get_seearch_items_conditions(item_code, serial_no, batch_no, barcode):
     return """ and (name like {item_code} or item_name like {item_code})""".format(
         item_code=frappe.db.escape("%" + item_code + "%")
     )
+
+
+@frappe.whitelist()
+def get_customer_details(customer_name):
+    """Obtiene los detalles completos de un cliente incluyendo customer_details"""
+    customer = frappe.get_doc("Customer", customer_name)
+    return {
+        "name": customer.name,
+        "customer_name": customer.customer_name,
+        "tax_id": customer.tax_id,
+        "mobile_no": customer.mobile_no,
+        "email_id": customer.email_id,
+        "customer_group": customer.customer_group,
+        "territory": customer.territory,
+        "gender": customer.gender,
+        "customer_details": customer.customer_details,
+    }
