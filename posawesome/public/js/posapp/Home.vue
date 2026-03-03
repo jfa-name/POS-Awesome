@@ -1,15 +1,14 @@
 <template>
-  <v-app class="container1" v-if="!posa_use_delivery_route">
+  <v-app :class="posa_use_delivery_route ? 'container2' : 'container1'">
     <v-main>
-      <Navbar @change-page="setPage"></Navbar>
-      <keep-alive>
-        <component v-bind:is="page" class="mx-4 md-4"></component>
-      </keep-alive>
-    </v-main>
-  </v-app>
-  <v-app class="container2" v-else>
-    <v-main>
-      <NavbarPlus @change-page="setPage"></NavbarPlus>
+      <NavbarPlus
+        v-if="posa_use_delivery_route"
+        @change-page="setPage"
+      ></NavbarPlus>
+      <Navbar
+        v-else
+        @change-page="setPage"
+      ></Navbar>
       <keep-alive>
         <component v-bind:is="page" class="mx-4 md-4"></component>
       </keep-alive>
@@ -29,6 +28,7 @@ export default {
     return {
       page: 'POS',
       posa_use_delivery_route: false,
+      selectedCustomer: '',
     };
   },
   components: {
@@ -55,15 +55,12 @@ export default {
       });
     },
     async loadPosProfile() {
-      // Carga el POS Profile y asigna la variable
       const r = await frappe.call({
         method: 'posawesome.posawesome.api.posapp.check_opening_shift',
         args: { user: frappe.session.user },
       });
       if (r.message && r.message.pos_profile) {
         this.posa_use_delivery_route = !!r.message.pos_profile.posa_use_delivery_route;
-        // Cambia la página inicial según el valor de posa_use_delivery_route si es necesario
-        // this.page = this.posa_use_delivery_route ? 'NavbarPlus' : 'Navbar';
       }
     },
   },

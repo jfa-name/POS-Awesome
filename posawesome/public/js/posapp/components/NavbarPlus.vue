@@ -3,7 +3,7 @@
     <v-app-bar app height="40" class="elevation-2">
       <v-app-bar-nav-icon
         @click.stop="drawer = !drawer"
-        class="grey--text"
+        class="text-grey"
       ></v-app-bar-nav-icon>
       <v-img
         src="/assets/posawesome/js/posapp/components/pos/pos.png"
@@ -15,7 +15,7 @@
       <v-toolbar-title
         @click="go_desk"
         style="cursor: pointer"
-        class="text-uppercase primary--text"
+        class="text-uppercase text-primary"
       >
         <span class="font-weight-light">{{ pos_profile.company }}</span>
         
@@ -35,31 +35,26 @@
       <span class="font-weight-light"> - </span>
       <span class="font-weight-bold">{{ moment().format('HH:mm') }}</span>
       <span class="font-weight-light"> - </span>
-      <v-btn style="cursor: unset" text color="primary">
+      <v-btn style="cursor: unset" variant="text" color="primary">
         <span right>{{ pos_profile.name }}</span>
       </v-btn>
       <div class="text-center">
-        <v-menu offset-y>
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn color="primary" dark text v-bind="attrs" v-on="on"
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn color="primary" dark variant="text" v-bind="props"
               >Menu</v-btn
             >
           </template>
-          <v-card class="mx-auto" max-width="300" tile>
-            <v-list dense>
-              <v-list-item-group v-model="menu_item" color="primary">
+          <v-card class="mx-auto" max-width="300">
+            <v-list density="compact">
                 <v-list-item
                   @click="close_shift_dialog"
                   v-if="!pos_profile.posa_hide_closing_shift && item == 0"
+                  prepend-icon="mdi-content-save-move-outline"
                 >
-                  <v-list-item-icon>
-                    <v-icon>mdi-content-save-move-outline</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{
-                      __('Close Shift')
-                    }}</v-list-item-title>
-                  </v-list-item-content>
+                  <v-list-item-title>{{
+                    __('Close Shift')
+                  }}</v-list-item-title>
                 </v-list-item>
                 <v-list-item
                   @click="print_last_invoice"
@@ -67,77 +62,44 @@
                     pos_profile.posa_allow_print_last_invoice &&
                     this.last_invoice
                   "
+                  prepend-icon="mdi-printer"
                 >
-                  <v-list-item-icon>
-                    <v-icon>mdi-printer</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{
-                      __('Print Last Invoice')
-                    }}</v-list-item-title>
-                  </v-list-item-content>
+                  <v-list-item-title>{{
+                    __('Print Last Invoice')
+                  }}</v-list-item-title>
                 </v-list-item>
                 <v-list-item
-                  @click="print_last_invoice"
+                  @click="print_last_deliverynote"
                   v-if="
                     pos_profile.posa_allow_print_last_deliverynotes &&
                     this.last_deliverynote
                   "
+                  prepend-icon="mdi-printer"
                 >
-                  <v-list-item-icon>
-                    <v-icon>mdi-printer</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{
-                      __('Print Last Invoice')
-                    }}</v-list-item-title>
-                  </v-list-item-content>
+                  <v-list-item-title>{{
+                    __('Print Last Delivery Note')
+                  }}</v-list-item-title>
                 </v-list-item>
                 <v-divider class="my-0"></v-divider>
-                <v-list-item @click="logOut">
-                  <v-list-item-icon>
-                    <v-icon>mdi-logout</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{ __('Logout') }}</v-list-item-title>
-                  </v-list-item-content>
+                <v-list-item @click="logOut" prepend-icon="mdi-logout">
+                  <v-list-item-title>{{ __('Logout') }}</v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="go_about">
-                  <v-list-item-icon>
-                    <v-icon>mdi-information-outline</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{ __('About') }}</v-list-item-title>
-                  </v-list-item-content>
+                <v-list-item @click="go_about" prepend-icon="mdi-information-outline">
+                  <v-list-item-title>{{ __('About') }}</v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="$emit('change-page', 'POS')">
-                  <v-list-item-icon>
-                    <v-icon>mdi-file-document-outline</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{ __('Sales Invoice') }}</v-list-item-title>
-                  </v-list-item-content>
+                <v-list-item @click="$emit('change-page', 'POS')" prepend-icon="mdi-file-document-outline">
+                  <v-list-item-title>{{ __('Sales Invoice') }}</v-list-item-title>
                 </v-list-item>
-                <v-list-item @click="$emit('change-page', 'POD')">
-                  <v-list-item-icon>
-                    <v-icon>mdi-truck-delivery-outline</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{ __('Delivery Note') }}</v-list-item-title>
-                  </v-list-item-content>
+                <v-list-item @click="$emit('change-page', 'POD')" prepend-icon="mdi-truck-delivery-outline">
+                  <v-list-item-title>{{ __('Delivery Note') }}</v-list-item-title>
                 </v-list-item>
                 <v-list-item
                   @click="$emit('change-page', 'Payments')"
                   v-if="pos_profile.posa_use_pos_awesome_payments"
+                  prepend-icon="mdi-cash-multiple"
                 >
-                  <v-list-item-icon>
-                    <v-icon>mdi-cash-multiple</v-icon>
-                  </v-list-item-icon>
-                  <v-list-item-content>
-                    <v-list-item-title>{{ __('Payments') }}</v-list-item-title>
-                  </v-list-item-content>
+                  <v-list-item-title>{{ __('Payments') }}</v-list-item-title>
                 </v-list-item>
-              </v-list-item-group>
             </v-list>
           </v-card>
         </v-menu>
@@ -145,16 +107,19 @@
     </v-app-bar>
     <v-navigation-drawer
       v-model="drawer"
-      :mini-variant.sync="mini"
+      :rail="mini"
+      @update:rail="mini = $event"
       app
       class="primary margen-top"
       width="170"
     >
       <v-list dark>
         <v-list-item class="px-2">
-          <v-list-item-avatar>
-            <v-img :src="company_img"></v-img>
-          </v-list-item-avatar>
+          <template v-slot:prepend>
+            <v-avatar>
+              <v-img :src="company_img"></v-img>
+            </v-avatar>
+          </template>
 
           <v-list-item-title>{{ company }}</v-list-item-title>
 
@@ -163,23 +128,19 @@
           </v-btn>
         </v-list-item>
         <!-- <MyPopup/> -->
-        <v-list-item-group v-model="item" color="white">
           <v-list-item
             v-for="item in items"
             :key="item.text"
+            :active="selectedOption === item.text"
+            active-color="white"
             @click="changePage(item.text)"
+            :prepend-icon="item.icon"
           >
-            <v-list-item-icon>
-              <v-icon v-text="item.icon"></v-icon>
-            </v-list-item-icon>
-            <v-list-item-content>
-              <v-list-item-title v-text="item.text"></v-list-item-title>
-            </v-list-item-content>
+            <v-list-item-title v-text="item.text"></v-list-item-title>
           </v-list-item>
-        </v-list-item-group>
       </v-list>
     </v-navigation-drawer>
-    <v-snackbar v-model="snack" :timeout="5000" :color="snackColor" top right>
+    <v-snackbar v-model="snack" :timeout="5000" :color="snackColor" location="top right">
       {{ snackText }}
     </v-snackbar>
     <v-dialog v-model="freeze" persistent max-width="290">
@@ -282,13 +243,6 @@ export default {
         console.log("No hay customer seleccionado");
         return;
       }
-      // const selectedCustomer = typeof customer === 'string' 
-      //   ? this.customers.find(c => c.name === customer)
-      //   : customer;
-      // if (!selectedCustomer) {
-      //   console.log("Cliente no encontrado en la lista:");
-      //   return;
-      // }
 
       try {
         let page = '';
@@ -314,7 +268,6 @@ export default {
         this.$emit('change-page', { page, selectedCustomer: customer.name });
         
         // Luego actualiza el estado global
-        // evntBus.selectedCustomer = customer.name;
         evntBus.$emit('clear_cart');
 
       } catch (error) {
@@ -422,9 +375,17 @@ export default {
       });
     });
   },
-  beforeDestroy() {
+  beforeUnmount() {
+    evntBus.$off('show_mesage');
+    evntBus.$off('set_company');
+    evntBus.$off('register_pos_profile');
+    evntBus.$off('update_customers_list');
+    evntBus.$off('customer_selected');
+    evntBus.$off('set_last_invoice');
+    evntBus.$off('freeze');
+    evntBus.$off('unfreeze');
     evntBus.$off('clear_customer_state');
-  }
+  },
 };
 </script>
 
