@@ -3,7 +3,7 @@
     <v-dialog v-model="varaintsDialog" max-width="600px">
       <v-card min-height="500px">
         <v-card-title>
-          <span class="headline primary--text">Select Item</span>
+          <span class="text-h5 text-primary">Select Item</span>
           <v-spacer></v-spacer>
           <v-btn color="error" dark @click="close_dialog">Close</v-btn>
         </v-card-title>
@@ -12,14 +12,14 @@
             <div v-for="attr in parentItem.attributes" :key="attr.attribute">
               <v-chip-group
                 v-model="filters[attr.attribute]"
-                active-class="green--text text--accent-4"
+                selected-class="text-green-accent-4"
                 column
               >
                 <v-chip
                   v-for="value in attr.values"
                   :key="value.abbr"
                   :value="value.attribute_value"
-                  outlined
+                  variant="outlined"
                   label
                   @click="updateFiltredItems"
                 >
@@ -40,13 +40,13 @@
                   cols="6"
                   min-height="50"
                 >
-                  <v-card hover="hover" @click="add_item(item)">
+                  <v-card @click="add_item(item)">
                     <v-img
                       :src="
                         item.image ||
                         '/assets/posawesome/js/posapp/components/pos/placeholder-image.png'
                       "
-                      class="white--text align-end"
+                      class="text-white align-end"
                       gradient="to bottom, rgba(0,0,0,.2), rgba(0,0,0,.7)"
                       height="100px"
                     >
@@ -55,8 +55,8 @@
                         class="text-subtitle-2 px-1 pb-2"
                       ></v-card-text>
                     </v-img>
-                    <v-card-text class="text--primary pa-1">
-                      <div class="text-caption primary--text accent-3">
+                    <v-card-text class="text-high-emphasis pa-1">
+                      <div class="text-caption text-primary">
                         {{ item.rate || 0 }} {{ item.currency || '' }}
                       </div>
                     </v-card-text>
@@ -140,7 +140,7 @@ export default {
     },
   },
 
-  created: function () {
+  created() {
     evntBus.$on('open_variants_model', (item, items) => {
       this.varaintsDialog = true;
       this.parentItem = item || null;
@@ -150,6 +150,10 @@ export default {
         this.filterdItems = this.variantsItems;
       });
     });
+  },
+
+  beforeUnmount() {
+    evntBus.$off('open_variants_model');
   },
 };
 </script>

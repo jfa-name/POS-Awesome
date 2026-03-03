@@ -1,12 +1,12 @@
 <template>
   <v-dialog v-model="dialog" max-width="400px" persistent>
     <v-card>
-      <v-card-title class="headline warning--text">
+      <v-card-title class="text-h5 text-warning">
         <v-icon color="warning" class="mr-2">mdi-alert</v-icon>
         {{ __('Unpaid Invoices') }}
       </v-card-title>
       <v-card-text class="text-center pa-6">
-        <div class="text-h5 error--text mb-2">{{ unpaidCount }}</div>
+        <div class="text-h5 text-error mb-2">{{ unpaidCount }}</div>
         <div class="text-body-1">
           {{ __('This customer has {0} unpaid invoice(s)', [unpaidCount]) }}
         </div>
@@ -46,7 +46,7 @@ export default {
     });
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     evntBus.$off('show_unpaid_invoices_alert');
   },
 };

@@ -3,7 +3,7 @@
     <v-dialog v-model="addressDialog" max-width="600px">
       <v-card>
         <v-card-title>
-          <span class="headline primary--text">{{
+          <span class="text-h5 text-primary">{{
             __('Add New Address')
           }}</span>
         </v-card-title>
@@ -114,11 +114,16 @@ export default {
       });
     },
   },
-  created: function () {
+
+  created() {
     evntBus.$on('open_new_address', (data) => {
       this.addressDialog = true;
       this.customer = data;
     });
+  },
+
+  beforeUnmount() {
+    evntBus.$off('open_new_address');
   },
 };
 </script>
