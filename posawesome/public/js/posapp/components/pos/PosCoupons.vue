@@ -33,24 +33,23 @@
         </v-row>
       </v-card-title>
       <div class="my-0 py-0 overflow-y-auto" style="max-height: 75vh">
-        <template @mouseover="style = 'cursor: pointer'">
-          <v-data-table
-            :headers="items_headers"
-            :items="posa_coupons"
-            :single-expand="singleExpand"
-            item-key="coupon"
-            class="elevation-1"
-            :items-per-page="itemsPerPage"
-            hide-default-footer
-          >
-            <template v-slot:item.applied="{ item }">
-              <v-simple-checkbox
-                v-model="item.applied"
-                disabled
-              ></v-simple-checkbox>
-            </template>
-          </v-data-table>
-        </template>
+        <v-data-table
+          :headers="items_headers"
+          :items="posa_coupons"
+          item-value="coupon"
+          class="elevation-1"
+          :items-per-page="itemsPerPage"
+          hide-default-footer
+        >
+          <template v-slot:item.applied="{ item }">
+            <v-checkbox
+              v-model="item.applied"
+              disabled
+              hide-details
+              density="compact"
+            ></v-checkbox>
+          </template>
+        </v-data-table>
       </div>
     </v-card>
 
@@ -86,12 +85,11 @@ export default {
     posa_coupons: [],
     new_coupon: null,
     itemsPerPage: 1000,
-    singleExpand: true,
     items_headers: [
-      { text: __('Coupon'), value: 'coupon_code', align: 'start' },
-      { text: __('Type'), value: 'type', align: 'start' },
-      { text: __('Offer'), value: 'pos_offer', align: 'start' },
-      { text: __('Applied'), value: 'applied', align: 'start' },
+      { title: __('Coupon'), key: 'coupon_code', align: 'start' },
+      { title: __('Type'), key: 'type', align: 'start' },
+      { title: __('Offer'), key: 'pos_offer', align: 'start' },
+      { title: __('Applied'), key: 'applied', align: 'start' },
     ],
   }),
 

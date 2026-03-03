@@ -67,27 +67,21 @@
             :label="frappe._('Delivery Charges')"
             v-model="selcted_delivery_charges"
             :items="delivery_charges"
-            item-text="name"
+            item-title="name"
             return-object
             background-color="white"
             :no-data-text="__('Charges not found')"
             hide-details
             :filter="deliveryChargesFilter"
             :disabled="readonly"
-            @change="update_delivery_charges()"
+            @update:modelValue="update_delivery_charges()"
           >
-            <template v-slot:item="data">
-              <template>
-                <v-list-item-content>
-                  <v-list-item-title
-                    class="primary--text subtitle-1"
-                    v-html="data.item.name"
-                  ></v-list-item-title>
-                  <v-list-item-subtitle
-                    v-html="`Rate: ${data.item.rate}`"
-                  ></v-list-item-subtitle>
-                </v-list-item-content>
-              </template>
+            <template v-slot:item="{ item, props }">
+              <v-list-item v-bind="props">
+                <v-list-item-subtitle>
+                  Rate: {{ item.raw.rate }}
+                </v-list-item-subtitle>
+              </v-list-item>
             </template>
           </v-autocomplete>
         </v-col>
@@ -105,6 +99,7 @@
           ></v-text-field>
         </v-col>
       </v-row>
+
       <v-row
         align="center"
         class="items px-2 py-1 mt-0 pt-0"
@@ -116,13 +111,11 @@
           class="pb-2"
         >
           <v-menu
-            ref="invoice_posting_date"
             v-model="invoice_posting_date"
             :close-on-content-click="false"
             transition="scale-transition"
-            dense
           >
-            <template v-slot:activator="{ on, attrs }">
+            <template v-slot:activator="{ props }">
               <v-text-field
                 v-model="posting_date"
                 :label="frappe._('Posting Date')"
@@ -133,64 +126,59 @@
                 clearable
                 color="primary"
                 hide-details
-                v-bind="attrs"
-                v-on="on"
+                v-bind="props"
               ></v-text-field>
             </template>
             <v-date-picker
               v-model="posting_date"
-              no-title
-              scrollable
-              color="primary"
-              :min="
-                frappe.datetime.add_days(frappe.datetime.now_date(true), -7)
-              "
+              :min="frappe.datetime.add_days(frappe.datetime.now_date(true), -7)"
               :max="frappe.datetime.add_days(frappe.datetime.now_date(true), 7)"
-              @input="invoice_posting_date = false"
-            >
-            </v-date-picker>
+              @update:modelValue="invoice_posting_date = false"
+            ></v-date-picker>
           </v-menu>
         </v-col>
       </v-row>
 
       <div class="my-0 py-0 overflow-y-auto" style="max-height: 60vh">
-        <template @mouseover="style = 'cursor: pointer'">
-          <v-data-table
-            :headers="items_headers"
-            :items="items"
-            :single-expand="singleExpand"
-            :expanded.sync="expanded"
-            show-expand
-            item-key="posa_row_id"
-            class="elevation-1"
-            :items-per-page="itemsPerPage"
-            hide-default-footer
+        <v-data-table
+          :headers="items_headers"
+          :items="items"
+          :single-expand="singleExpand"
+          v-model:expanded="expanded"
+          show-expand
+          item-value="posa_row_id"
+          class="elevation-1"
+          :items-per-page="itemsPerPage"
+          hide-default-footer
+        >
+          <template v-slot:item.qty="{ item }">{{
+            formtFloat(item.qty)
+          }}</template>
+          <template v-slot:item.rate="{ item }"
+            >{{ currencySymbol(pos_profile.currency) }}
+            {{ formtCurrency(item.rate) }}</template
           >
-            <template v-slot:item.qty="{ item }">{{
-              formtFloat(item.qty)
-            }}</template>
-            <template v-slot:item.rate="{ item }"
-              >{{ currencySymbol(pos_profile.currency) }}
-              {{ formtCurrency(item.rate) }}</template
-            >
-            <template v-slot:item.amount="{ item }"
-              >{{ currencySymbol(pos_profile.currency) }}
-              {{
-                formtCurrency(
-                  flt(item.qty, float_precision) *
-                    flt(item.rate, currency_precision)
-                )
-              }}</template
-            >
-            <template v-slot:item.posa_is_offer="{ item }">
-              <v-simple-checkbox
-                :value="!!item.posa_is_offer || !!item.posa_is_replace"
-                disabled
-              ></v-simple-checkbox>
-            </template>
+          <template v-slot:item.amount="{ item }"
+            >{{ currencySymbol(pos_profile.currency) }}
+            {{
+              formtCurrency(
+                flt(item.qty, float_precision) *
+                  flt(item.rate, currency_precision)
+              )
+            }}</template
+          >
+          <template v-slot:item.posa_is_offer="{ item }">
+            <v-checkbox
+              :model-value="!!item.posa_is_offer || !!item.posa_is_replace"
+              disabled
+              hide-details
+              density="compact"
+            ></v-checkbox>
+          </template>
 
-            <template v-slot:expanded-item="{ headers, item }">
-              <td :colspan="headers.length" class="ma-0 pa-0">
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td colspan="100%" class="ma-0 pa-0">
                 <v-row class="ma-0 pa-0">
                   <v-col cols="1">
                     <v-btn
@@ -264,10 +252,10 @@
                       v-model="item.uom"
                       :items="item.item_uoms"
                       outlined
-                      item-text="uom"
+                      item-title="uom"
                       item-value="uom"
                       hide-details
-                      @change="calc_uom(item, $event)"
+                      @update:modelValue="calc_uom(item, $event)"
                       :disabled="
                         !!invoice_doc.is_return ||
                         !!item.posa_is_offer ||
@@ -445,7 +433,7 @@
                   </v-col>
                   <v-col align="center" cols="4" v-if="item.posa_offer_applied">
                     <v-checkbox
-                      dense
+                      density="compact"
                       :label="frappe._('Offer Applied')"
                       v-model="item.posa_offer_applied"
                       readonly
@@ -476,15 +464,15 @@
                     <v-autocomplete
                       v-model="item.serial_no_selected"
                       :items="item.serial_no_data"
-                      item-text="serial_no"
+                      item-title="serial_no"
+                      item-value="serial_no"
                       outlined
                       dense
                       chips
                       color="primary"
-                      small-chips
                       :label="frappe._('Serial No')"
                       multiple
-                      @change="set_serial_no(item)"
+                      @update:modelValue="set_serial_no(item)"
                     ></v-autocomplete>
                   </v-col>
                   <v-col
@@ -524,26 +512,20 @@
                     <v-autocomplete
                       v-model="item.batch_no"
                       :items="item.batch_no_data"
-                      item-text="batch_no"
+                      item-title="batch_no"
+                      item-value="batch_no"
                       outlined
                       dense
                       color="primary"
                       :label="frappe._('Batch No')"
-                      @change="set_batch_qty(item, $event)"
+                      @update:modelValue="set_batch_qty(item, $event)"
                     >
-                      <template v-slot:item="data">
-                        <template>
-                          <v-list-item-content>
-                            <v-list-item-title
-                              v-html="data.item.batch_no"
-                            ></v-list-item-title>
-                            <v-list-item-subtitle
-                              v-html="
-                                `Available QTY  '${data.item.batch_qty}' - Expiry Date ${data.item.expiry_date}`
-                              "
-                            ></v-list-item-subtitle>
-                          </v-list-item-content>
-                        </template>
+                      <template v-slot:item="{ item: batchItem, props: batchProps }">
+                        <v-list-item v-bind="batchProps">
+                          <v-list-item-subtitle>
+                            Available QTY '{{ batchItem.raw.batch_qty }}' - Expiry Date {{ batchItem.raw.expiry_date }}
+                          </v-list-item-subtitle>
+                        </v-list-item>
                       </template>
                     </v-autocomplete>
                   </v-col>
@@ -554,59 +536,18 @@
                       invoiceType == 'Order'
                     "
                   >
-                    <v-menu
-                      ref="item_delivery_date"
-                      v-model="item.item_delivery_date"
-                      :close-on-content-click="false"
-                      :return-value.sync="item.posa_delivery_date"
-                      transition="scale-transition"
+                    <v-text-field
+                      v-model="item.posa_delivery_date"
+                      :label="frappe._('Delivery Date')"
+                      outlined
                       dense
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          v-model="item.posa_delivery_date"
-                          :label="frappe._('Delivery Date')"
-                          readonly
-                          outlined
-                          dense
-                          clearable
-                          color="primary"
-                          hide-details
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        v-model="item.posa_delivery_date"
-                        no-title
-                        scrollable
-                        color="primary"
-                        :min="frappe.datetime.now_date()"
-                      >
-                        <v-spacer></v-spacer>
-                        <v-btn
-                          text
-                          color="primary"
-                          @click="item.item_delivery_date = false"
-                        >
-                          Cancel
-                        </v-btn>
-                        <v-btn
-                          text
-                          color="primary"
-                          @click="
-                            [
-                              $refs.item_delivery_date.save(
-                                item.posa_delivery_date
-                              ),
-                              validate_due_date(item),
-                            ]
-                          "
-                        >
-                          OK
-                        </v-btn>
-                      </v-date-picker>
-                    </v-menu>
+                      clearable
+                      color="primary"
+                      hide-details
+                      type="date"
+                      :min="frappe.datetime.now_date()"
+                      @change="validate_due_date(item)"
+                    ></v-text-field>
                   </v-col>
                   <v-col
                     cols="8"
@@ -622,14 +563,13 @@
                       rows="1"
                       :label="frappe._('Additional Notes')"
                       v-model="item.posa_notes"
-                      :value="item.posa_notes"
                     ></v-textarea>
                   </v-col>
                 </v-row>
               </td>
-            </template>
-          </v-data-table>
-        </template>
+            </tr>
+          </template>
+        </v-data-table>
       </div>
     </v-card>
     <v-card class="cards mb-0 mt-3 py-0 grey lighten-5">
@@ -863,7 +803,6 @@ export default {
       float_precision: 2,
       currency_precision: 2,
       new_line: false,
-      buttonLabel: this.listButtonLabel,
       delivery_charges: [],
       delivery_charges_rate: 0,
       selcted_delivery_charges: {},
@@ -871,16 +810,16 @@ export default {
       posting_date: frappe.datetime.nowdate(),
       items_headers: [
         {
-          text: __("Name"),
+          title: __("Name"),
           align: "start",
           sortable: true,
-          value: "item_name",
+          key: "item_name",
         },
-        { text: __("QTY"), value: "qty", align: "center" },
-        { text: __("UOM"), value: "uom", align: "center" },
-        { text: __("Rate"), value: "rate", align: "center" },
-        { text: __("Amount"), value: "amount", align: "center" },
-        { text: __("is Offer"), value: "posa_is_offer", align: "center" },
+        { title: __("QTY"), key: "qty", align: "center" },
+        { title: __("UOM"), key: "uom", align: "center" },
+        { title: __("Rate"), key: "rate", align: "center" },
+        { title: __("Amount"), key: "amount", align: "center" },
+        { title: __("is Offer"), key: "posa_is_offer", align: "center" },
       ],
     };
   },
@@ -1312,7 +1251,6 @@ export default {
       this.items.forEach((item) => {
         if (this.pos_profile.posa_max_discount_allowed) {
           if (item.discount_amount && this.flt(item.discount_amount) > 0) {
-            // calc discount percentage
             const discount_percentage =
               (this.flt(item.discount_amount) * 100) /
               this.flt(item.price_list_rate);
@@ -1473,7 +1411,7 @@ export default {
         },
       });
     },
-    
+
     get_lists_invoices() {
       if (!this.customer) {
         evntBus.$emit('show_mesage', {
@@ -1556,7 +1494,6 @@ export default {
             child_docname: "New Sales Invoice Item 1",
             cost_center: this.pos_profile.cost_center,
             currency: this.pos_profile.currency,
-            // plc_conversion_rate: 1,
             pos_profile: this.pos_profile.name,
             uom: item.uom,
             tax_category: "",
@@ -1676,6 +1613,7 @@ export default {
       }
       evntBus.$emit("update_customer_price_list", price_list);
     },
+
     update_discount_umount() {
       const value = flt(this.additional_discount_percentage);
       if (value >= -100 && value <= 100) {
@@ -1801,11 +1739,6 @@ export default {
         });
       });
 
-      // set item batch_no based on:
-      // 1. if batch has expiry_date we should use the batch with the nearest expiry_date
-      // 2. if batch has no expiry_date we should use the batch with the earliest manufacturing_date
-      // 3. we should not use batch with remaining_qty = 0
-      // 4. we should the highest remaining_qty
       const batch_no_data = Object.values(used_batches)
         .filter((batch) => batch.remaining_qty > 0)
         .sort((a, b) => {
@@ -1850,7 +1783,6 @@ export default {
         item.batch_no_expiry_date = null;
         item.batch_price = null;
       }
-      // update item batch_no_data from batch_no_data
       item.batch_no_data = batch_no_data;
     },
 
@@ -1939,7 +1871,6 @@ export default {
     },
 
     setItemGiveOffer(offers) {
-      // Set item give offer for replace
       offers.forEach((offer) => {
         if (
           offer.apply_on == "Item Code" &&
@@ -2152,6 +2083,7 @@ export default {
       }
       return apply_offer;
     },
+
     getTransactionOffer(offer) {
       let apply_offer = null;
       if (offer.apply_on === "Transaction") {
@@ -2596,6 +2528,7 @@ export default {
         }, 0);
       }
     },
+
     load_print_page(invoice_name) {
       const print_format =
         this.pos_profile.print_format_for_online ||
@@ -2615,8 +2548,6 @@ export default {
         "load",
         function () {
           printWindow.print();
-          // printWindow.close();
-          // NOTE : uncomoent this to auto closing printing window
         },
         true
       );
@@ -2641,6 +2572,7 @@ export default {
         },
       ]);
     },
+
     set_delivery_charges() {
       const vm = this;
       if (
@@ -2671,11 +2603,13 @@ export default {
         },
       });
     },
-    deliveryChargesFilter(item, queryText, itemText) {
+
+    deliveryChargesFilter(item, queryText) {
       const textOne = item.name.toLowerCase();
       const searchText = queryText.toLowerCase();
       return textOne.indexOf(searchText) > -1;
     },
+
     update_delivery_charges() {
       if (this.selcted_delivery_charges) {
         this.delivery_charges_rate = this.selcted_delivery_charges.rate;
@@ -2743,7 +2677,8 @@ export default {
       this.new_line = data;
     });
   },
-  beforeDestroy() {
+
+  beforeUnmount() {
     evntBus.$off("register_pos_profile");
     evntBus.$off("add_item");
     evntBus.$off("update_customer");
@@ -2754,18 +2689,21 @@ export default {
     evntBus.$off("update_invoice_coupons");
     evntBus.$off("set_all_items");
   },
+
   created() {
     document.addEventListener("keydown", this.shortOpenPayment.bind(this));
     document.addEventListener("keydown", this.shortDeleteFirstItem.bind(this));
     document.addEventListener("keydown", this.shortOpenFirstItem.bind(this));
     document.addEventListener("keydown", this.shortSelectDiscount.bind(this));
   },
-  destroyed() {
+
+  unmounted() {
     document.removeEventListener("keydown", this.shortOpenPayment);
     document.removeEventListener("keydown", this.shortDeleteFirstItem);
     document.removeEventListener("keydown", this.shortOpenFirstItem);
     document.removeEventListener("keydown", this.shortSelectDiscount);
   },
+
   watch: {
     customer() {
       this.close_payments();
@@ -2777,7 +2715,6 @@ export default {
       evntBus.$emit("set_customer_info_to_edit", this.customer_info);
     },
     expanded(data_value) {
-      // this.update_items_details(data_value);
       if (data_value.length > 0) {
         this.update_item_detail(data_value[0]);
       }
@@ -2807,8 +2744,8 @@ export default {
         this.additional_discount_percentage = 0;
       }
     },
-    dialog_data(newDialogData) {
-      this.buttonLabel = this.listButtonLabel;
+    dialog_data() {
+      // listButtonLabel is computed, no action needed here
     },
   },
 };

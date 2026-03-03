@@ -20,7 +20,7 @@
               class="mx-4"
             ></v-text-field>
             <v-btn
-              text
+              variant="text"
               class="ml-2"
               color="primary"
               dark
@@ -29,29 +29,27 @@
             >
           </v-row>
           <v-row>
-            <v-col cols="12" class="pa-1" v-if="dialog_data">
-              <template>
-                <v-data-table
-                  :headers="headers"
-                  :items="dialog_data"
-                  item-key="name"
-                  class="elevation-1"
-                  :single-select="singleSelect"
-                  show-select
-                  v-model="selected"
-                >
-                  <template v-slot:item.grand_total="{ item }">
-                    {{ currencySymbol(item.currency) }}
-                    {{ formtCurrency(item.grand_total) }}</template
-                  >
-                </v-data-table>
-              </template>
+            <v-col cols="12" class="pa-1" v-if="dialog_data.length">
+              <v-data-table
+                :headers="headers"
+                :items="dialog_data"
+                item-value="name"
+                class="elevation-1"
+                select-strategy="single"
+                show-select
+                v-model:selected="selected"
+              >
+                <template v-slot:item.grand_total="{ item }">
+                  {{ currencySymbol(item.currency) }}
+                  {{ formtCurrency(item.grand_total) }}
+                </template>
+              </v-data-table>
             </v-col>
           </v-row>
         </v-container>
         <v-card-actions class="mt-4">
           <v-spacer></v-spacer>
-          <v-btn color="error mx-2" dark @click="close_dialog">Close</v-btn>
+          <v-btn color="error" class="mx-2" dark @click="close_dialog">Close</v-btn>
           <v-btn
             v-if="selected.length"
             color="success"
@@ -72,33 +70,32 @@ export default {
   mixins: [format],
   data: () => ({
     invoicesDialog: false,
-    singleSelect: true,
     selected: [],
-    dialog_data: '',
+    dialog_data: [],
     company: '',
     invoice_name: '',
     headers: [
       {
-        text: __('Customer'),
-        value: 'customer',
+        title: __('Customer'),
+        key: 'customer',
         align: 'start',
         sortable: true,
       },
       {
-        text: __('Date'),
+        title: __('Date'),
         align: 'start',
         sortable: true,
-        value: 'posting_date',
+        key: 'posting_date',
       },
       {
-        text: __('Invoice'),
-        value: 'name',
+        title: __('Invoice'),
+        key: 'name',
         align: 'start',
         sortable: true,
       },
       {
-        text: __('Amount'),
-        value: 'grand_total',
+        title: __('Amount'),
+        key: 'grand_total',
         align: 'end',
         sortable: false,
       },
@@ -132,7 +129,14 @@ export default {
     },
     submit_dialog() {
       if (this.selected.length > 0) {
-        const return_doc = this.selected[0];
+        // In Vuetify 3, v-model:selected holds item-value (name strings), not full objects
+        // Find the full object from dialog_data
+        const selected_name = this.selected[0];
+        const return_doc = this.dialog_data.find(
+          (item) => item.name === selected_name
+        );
+        if (!return_doc) return;
+
         const invoice_doc = {};
         const items = [];
         return_doc.items.forEach((item) => {
@@ -157,7 +161,7 @@ export default {
       this.invoicesDialog = true;
       this.company = data;
       this.invoice_name = '';
-      this.dialog_data = '';
+      this.dialog_data = [];
       this.selected = [];
     });
   },

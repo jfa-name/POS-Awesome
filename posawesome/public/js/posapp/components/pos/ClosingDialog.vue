@@ -11,51 +11,40 @@
           <v-container>
             <v-row>
               <v-col cols="12" class="pa-1">
-                <template>
-                  <v-data-table
-                    :headers="headers"
-                    :items="dialog_data.payment_reconciliation"
-                    item-key="mode_of_payment"
-                    class="elevation-1"
-                    :items-per-page="itemsPerPage"
-                    hide-default-footer
-                  >
-                    <template v-slot:item.closing_amount="props">
-                      <v-edit-dialog
-                        :return-value.sync="props.item.closing_amount"
-                      >
-                        {{ currencySymbol(pos_profile.currency) }}
-                        {{ formtCurrency(props.item.closing_amount) }}
-                        <template v-slot:input>
-                          <v-text-field
-                            v-model="props.item.closing_amount"
-                            :rules="[max25chars]"
-                            :label="frappe._('Edit')"
-                            single-line
-                            counter
-                            type="number"
-                          ></v-text-field>
-                        </template>
-                      </v-edit-dialog>
-                    </template>
-                    <template v-slot:item.difference="{ item }">
-                      {{ currencySymbol(pos_profile.currency) }}
-                      {{
-                        (item.difference = formtCurrency(
-                          item.expected_amount - item.closing_amount
-                        ))
-                      }}</template
-                    >
-                    <template v-slot:item.opening_amount="{ item }">
-                      {{ currencySymbol(pos_profile.currency) }}
-                      {{ formtCurrency(item.opening_amount) }}</template
-                    >
-                    <template v-slot:item.expected_amount="{ item }">
-                      {{ currencySymbol(pos_profile.currency) }}
-                      {{ formtCurrency(item.expected_amount) }}</template
-                    >
-                  </v-data-table>
-                </template>
+                <v-data-table
+                  :headers="headers"
+                  :items="dialog_data.payment_reconciliation"
+                  item-value="mode_of_payment"
+                  class="elevation-1"
+                  :items-per-page="itemsPerPage"
+                  hide-default-footer
+                >
+                  <template v-slot:item.closing_amount="{ item }">
+                    <v-text-field
+                      v-model="item.closing_amount"
+                      :rules="[max25chars]"
+                      :label="frappe._('Edit')"
+                      single-line
+                      type="number"
+                      density="compact"
+                      variant="underlined"
+                      hide-details
+                      :prefix="currencySymbol(pos_profile.currency)"
+                    ></v-text-field>
+                  </template>
+                  <template v-slot:item.opening_amount="{ item }">
+                    {{ currencySymbol(pos_profile.currency) }}
+                    {{ formtCurrency(item.opening_amount) }}
+                  </template>
+                  <template v-slot:item.expected_amount="{ item }">
+                    {{ currencySymbol(pos_profile.currency) }}
+                    {{ formtCurrency(item.expected_amount) }}
+                  </template>
+                  <template v-slot:item.difference="{ item }">
+                    {{ currencySymbol(pos_profile.currency) }}
+                    {{ formtCurrency(item.expected_amount - item.closing_amount) }}
+                  </template>
+                </v-data-table>
               </v-col>
             </v-row>
           </v-container>
@@ -86,26 +75,25 @@ export default {
     pos_profile: '',
     headers: [
       {
-        text: __('Mode of Payment'),
-        value: 'mode_of_payment',
+        title: __('Mode of Payment'),
+        key: 'mode_of_payment',
         align: 'start',
         sortable: true,
       },
       {
-        text: __('Opening Amount'),
+        title: __('Opening Amount'),
         align: 'end',
         sortable: true,
-        value: 'opening_amount',
+        key: 'opening_amount',
       },
       {
-        text: __('Closing Amount'),
-        value: 'closing_amount',
+        title: __('Closing Amount'),
+        key: 'closing_amount',
         align: 'end',
         sortable: true,
       },
     ],
-    max25chars: (v) => v.length <= 20 || 'Input too long!', // TODO : should validate as number
-    pagination: {},
+    max25chars: (v) => String(v).length <= 20 || 'Input too long!',
   }),
   watch: {},
 
@@ -128,14 +116,14 @@ export default {
       this.pos_profile = data.pos_profile;
       if (!this.pos_profile.hide_expected_amount) {
         this.headers.push({
-          text: __('Expected Amount'),
-          value: 'expected_amount',
+          title: __('Expected Amount'),
+          key: 'expected_amount',
           align: 'end',
           sortable: false,
         });
         this.headers.push({
-          text: __('Difference'),
-          value: 'difference',
+          title: __('Difference'),
+          key: 'difference',
           align: 'end',
           sortable: false,
         });

@@ -1,8 +1,8 @@
 <template>
   <v-row justify="center">
     <v-dialog v-model="draftsDialog" max-width="900px">
-      <!-- <template v-slot:activator="{ on, attrs }">
-        <v-btn color="primary" dark v-bind="attrs" v-on="on">Open Dialog</v-btn>
+      <!-- <template v-slot:activator="{ props }">
+        <v-btn color="primary" dark v-bind="props">Open Dialog</v-btn>
       </template>-->
       <v-card>
         <v-card-title>
@@ -14,25 +14,23 @@
           <v-container>
             <v-row no-gutters>
               <v-col cols="12" class="pa-1">
-                <template>
-                  <v-data-table
-                    :headers="headers"
-                    :items="dialog_data"
-                    item-key="name"
-                    class="elevation-1"
-                    :single-select="singleSelect"
-                    show-select
-                    v-model="selected"
-                  >
-                    <template v-slot:item.posting_time="{ item }">
-                      {{ item.posting_time.split('.')[0] }}
-                    </template>
-                    <template v-slot:item.grand_total="{ item }">
-                      {{ currencySymbol(item.currency) }}
-                      {{ formtCurrency(item.grand_total) }}
-                    </template>
-                  </v-data-table>
-                </template>
+                <v-data-table
+                  :headers="headers"
+                  :items="dialog_data"
+                  item-value="name"
+                  class="elevation-1"
+                  select-strategy="single"
+                  show-select
+                  v-model:selected="selected"
+                >
+                  <template v-slot:item.posting_time="{ item }">
+                    {{ item.posting_time.split('.')[0] }}
+                  </template>
+                  <template v-slot:item.grand_total="{ item }">
+                    {{ currencySymbol(item.currency) }}
+                    {{ formtCurrency(item.grand_total) }}
+                  </template>
+                </v-data-table>
               </v-col>
             </v-row>
           </v-container>
@@ -55,37 +53,36 @@ export default {
   mixins: [format],
   data: () => ({
     draftsDialog: false,
-    singleSelect: true,
     selected: [],
-    dialog_data: {},
+    dialog_data: [],
     headers: [
       {
-        text: __('Customer'),
-        value: 'customer_name',
+        title: __('Customer'),
+        key: 'customer_name',
         align: 'start',
         sortable: true,
       },
       {
-        text: __('Date'),
+        title: __('Date'),
         align: 'start',
         sortable: true,
-        value: 'posting_date',
+        key: 'posting_date',
       },
       {
-        text: __('Time'),
+        title: __('Time'),
         align: 'start',
         sortable: true,
-        value: 'posting_time',
+        key: 'posting_time',
       },
       {
-        text: __('Invoice'),
-        value: 'name',
+        title: __('Invoice'),
+        key: 'name',
         align: 'start',
         sortable: true,
       },
       {
-        text: __('Amount'),
-        value: 'grand_total',
+        title: __('Amount'),
+        key: 'grand_total',
         align: 'end',
         sortable: false,
       },

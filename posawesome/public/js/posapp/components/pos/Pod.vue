@@ -226,16 +226,19 @@ export default {
       evntBus.$on('submit_closing_pos', (data) => {
         this.submit_closing_pos(data);
       });
-    });
-  },
-  mounted: function () {
-    this.$nextTick(function () {
       evntBus.$on('clear_cart', () => {
         this.clearCart();
       });
     });
   },
-  beforeDestroy() {
+  beforeUnmount() {
+    evntBus.$off('close_opening_dialog');
+    evntBus.$off('register_pos_data');
+    evntBus.$off('show_proceed');
+    evntBus.$off('show_offers');
+    evntBus.$off('show_coupons');
+    evntBus.$off('open_closing_dialog');
+    evntBus.$off('submit_closing_pos');
     evntBus.$off('clear_cart');
   },
 };

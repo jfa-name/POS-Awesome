@@ -8,34 +8,36 @@
         <span class="text-h6 primary--text">{{ __('Offers') }}</span>
       </v-card-title>
       <div class="my-0 py-0 overflow-y-auto" style="max-height: 75vh">
-        <template @mouseover="style = 'cursor: pointer'">
-          <v-data-table
-            :headers="items_headers"
-            :items="pos_offers"
-            :single-expand="singleExpand"
-            :expanded.sync="expanded"
-            show-expand
-            item-key="row_id"
-            class="elevation-1"
-            :items-per-page="itemsPerPage"
-            hide-default-footer
-          >
-            <template v-slot:item.offer_applied="{ item }">
-              <v-simple-checkbox
-                @click="forceUpdateItem"
-                v-model="item.offer_applied"
-                :disabled="
-                  (item.offer == 'Give Product' &&
-                    !item.give_item &&
-                    (!offer.replace_cheapest_item || !offer.replace_item)) ||
-                  (item.offer == 'Grand Total' &&
-                    discount_percentage_offer_name &&
-                    discount_percentage_offer_name != item.name)
-                "
-              ></v-simple-checkbox>
-            </template>
-            <template v-slot:expanded-item="{ headers, item }">
-              <td :colspan="headers.length">
+        <v-data-table
+          :headers="items_headers"
+          :items="pos_offers"
+          :single-expand="singleExpand"
+          v-model:expanded="expanded"
+          show-expand
+          item-value="row_id"
+          class="elevation-1"
+          :items-per-page="itemsPerPage"
+          hide-default-footer
+        >
+          <template v-slot:item.offer_applied="{ item }">
+            <v-checkbox
+              @update:modelValue="forceUpdateItem"
+              v-model="item.offer_applied"
+              hide-details
+              density="compact"
+              :disabled="
+                (item.offer == 'Give Product' &&
+                  !item.give_item &&
+                  (!item.replace_cheapest_item || !item.replace_item)) ||
+                (item.offer == 'Grand Total' &&
+                  discount_percentage_offer_name &&
+                  discount_percentage_offer_name != item.name)
+              "
+            ></v-checkbox>
+          </template>
+          <template v-slot:expanded-row="{ item }">
+            <tr>
+              <td colspan="100%">
                 <v-row class="mt-2">
                   <v-col v-if="item.description">
                     <div
@@ -47,7 +49,8 @@
                     <v-autocomplete
                       v-model="item.give_item"
                       :items="get_give_items(item)"
-                      item-text="item_code"
+                      item-title="item_code"
+                      item-value="item_code"
                       outlined
                       dense
                       color="primary"
@@ -61,9 +64,9 @@
                   </v-col>
                 </v-row>
               </td>
-            </template>
-          </v-data-table>
-        </template>
+            </tr>
+          </template>
+        </v-data-table>
       </div>
     </v-card>
 
@@ -104,10 +107,10 @@ export default {
     expanded: [],
     singleExpand: true,
     items_headers: [
-      { text: __('Name'), value: 'name', align: 'start' },
-      { text: __('Apply On'), value: 'apply_on', align: 'start' },
-      { text: __('Offer'), value: 'offer', align: 'start' },
-      { text: __('Applied'), value: 'offer_applied', align: 'start' },
+      { title: __('Name'), key: 'name', align: 'start' },
+      { title: __('Apply On'), key: 'apply_on', align: 'start' },
+      { title: __('Offer'), key: 'offer', align: 'start' },
+      { title: __('Applied'), key: 'offer_applied', align: 'start' },
     ],
   }),
 
@@ -178,7 +181,7 @@ export default {
             newOffer.give_item = offer.apply_item_code || 'Nothing';
           }
           if (offer.offer_applied) {
-            newOffer.offer_applied == !!offer.offer_applied;
+            newOffer.offer_applied = !!offer.offer_applied; // fixed: was == instead of =
           } else {
             if (
               offer.apply_type == 'Item Group' &&

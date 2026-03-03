@@ -66,7 +66,7 @@
                 cols="6"
                 min-height="50"
               >
-                <v-card hover="hover" @click="add_item(item)">
+                <v-card hover @click="add_item(item)">
                   <v-img
                     :src="
                       item.image ||
@@ -81,7 +81,7 @@
                       class="text-caption px-1 pb-0"
                     ></v-card-text>
                   </v-img>
-                  <v-card-text class="text--primary pa-1">
+                  <v-card-text class="text-primary pa-1">
                     <div class="text-caption primary--text">
                       {{ currencySymbol(item.currency) || '' }}
                       {{ formtCurrency(item.rate) || 0 }}
@@ -97,29 +97,27 @@
           </div>
           <div fluid class="items" v-if="items_view == 'list'">
             <div class="my-0 py-0 overflow-y-auto" style="max-height: 65vh">
-              <template>
-                <v-data-table
-                  :headers="getItmesHeaders()"
-                  :items="filtred_items"
-                  item-key="item_code"
-                  class="elevation-1"
-                  :items-per-page="itemsPerPage"
-                  hide-default-footer
-                  @click:row="add_item"
-                >
-                  <template v-slot:item.rate="{ item }">
-                    <span class="primary--text"
-                      >{{ currencySymbol(item.currency) }}
-                      {{ formtCurrency(item.rate) }}</span
-                    >
-                  </template>
-                  <template v-slot:item.actual_qty="{ item }">
-                    <span class="golden--text">{{
-                      formtFloat(item.actual_qty)
-                    }}</span>
-                  </template>
-                </v-data-table>
-              </template>
+              <v-data-table
+                :headers="getItmesHeaders()"
+                :items="filtred_items"
+                item-value="item_code"
+                class="elevation-1"
+                :items-per-page="itemsPerPage"
+                hide-default-footer
+                @click:row="(_, { item }) => add_item(item.raw)"
+              >
+                <template v-slot:item.rate="{ item }">
+                  <span class="primary--text"
+                    >{{ currencySymbol(item.currency) }}
+                    {{ formtCurrency(item.rate) }}</span
+                  >
+                </template>
+                <template v-slot:item.actual_qty="{ item }">
+                  <span class="golden--text">{{
+                    formtFloat(item.actual_qty)
+                  }}</span>
+                </template>
+              </v-data-table>
             </div>
           </div>
         </v-col>
@@ -135,7 +133,7 @@
             outlined
             hide-details
             v-model="item_group"
-            v-on:change="search_onchange"
+            @update:modelValue="search_onchange"
           ></v-select>
         </v-col>
         <v-col cols="3" class="mt-1">
@@ -143,20 +141,19 @@
             v-model="items_view"
             color="primary"
             group
-            dense
             rounded
           >
-            <v-btn small value="list">{{ __('List') }}</v-btn>
-            <v-btn small value="card">{{ __('Card') }}</v-btn>
+            <v-btn size="small" value="list">{{ __('List') }}</v-btn>
+            <v-btn size="small" value="card">{{ __('Card') }}</v-btn>
           </v-btn-toggle>
         </v-col>
         <v-col cols="4" class="mt-2">
-          <v-btn small block color="primary" text @click="show_coupons"
+          <v-btn size="small" block color="primary" variant="text" @click="show_coupons"
             >{{ couponsCount }} {{ __('Coupons') }}</v-btn
           >
         </v-col>
         <v-col cols="5" class="mt-2">
-          <v-btn small block color="primary" text @click="show_offers"
+          <v-btn size="small" block color="primary" variant="text" @click="show_offers"
             >{{ offersCount }} {{ __('Offers') }} : {{ appliedOffersCount }}
             {{ __('Applied') }}</v-btn
           >
@@ -306,20 +303,20 @@ export default {
     getItmesHeaders() {
       const items_headers = [
         {
-          text: __('Name'),
+          title: __('Name'),
           align: 'start',
           sortable: true,
-          value: 'item_name',
+          key: 'item_name',
         },
         {
-          text: __('Code'),
+          title: __('Code'),
           align: 'start',
           sortable: true,
-          value: 'item_code',
+          key: 'item_code',
         },
-        { text: __('Rate'), value: 'rate', align: 'start' },
-        { text: __('Available QTY'), value: 'actual_qty', align: 'start' },
-        { text: __('UOM'), value: 'stock_uom', align: 'start' },
+        { title: __('Rate'), key: 'rate', align: 'start' },
+        { title: __('Available QTY'), key: 'actual_qty', align: 'start' },
+        { title: __('UOM'), key: 'stock_uom', align: 'start' },
       ];
       if (!this.pos_profile.posa_display_item_code) {
         items_headers.splice(1, 1);
@@ -607,8 +604,8 @@ export default {
   created: function () {
     this.$nextTick(function () {
       this.scannerDetectionData = {
-        options: {}
-        };
+        options: {},
+      };
     });
     evntBus.$on('register_pos_profile', (data) => {
       this.pos_profile = data.pos_profile;
@@ -633,13 +630,14 @@ export default {
       this.customer_price_list = data;
     });
   },
-  beforeDestroy() {
+
+  beforeUnmount() {
     detachFrom(this.$el);
   },
 
   mounted() {
-     // detachFrom(document); // Detach onScan.js if already attached
-     this.scan_barcoud();
+    // detachFrom(document); // Detach onScan.js if already attached
+    this.scan_barcoud();
   },
 };
 </script>

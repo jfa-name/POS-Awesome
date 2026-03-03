@@ -27,36 +27,34 @@
               clearable
               class="mx-4"
             ></v-text-field>
-            <v-btn text class="ml-2" color="primary" dark @click="search">{{
+            <v-btn variant="text" class="ml-2" color="primary" dark @click="search">{{
               __('Search')
             }}</v-btn>
           </v-row>
           <v-row>
-            <v-col cols="12" class="pa-1" v-if="dialog_data">
-              <template>
-                <v-data-table
-                  :headers="headers"
-                  :items="dialog_data"
-                  item-key="name"
-                  class="elevation-1"
-                  :single-select="singleSelect"
-                  show-select
-                  v-model="selected"
-                >
-                  <template v-slot:item.amount="{ item }">{{
-                    formtCurrency(item.amount)
-                  }}</template>
-                  <template v-slot:item.posting_date="{ item }">{{
-                    item.posting_date.slice(0, 16)
-                  }}</template>
-                </v-data-table>
-              </template>
+            <v-col cols="12" class="pa-1" v-if="dialog_data.length">
+              <v-data-table
+                :headers="headers"
+                :items="dialog_data"
+                item-value="name"
+                class="elevation-1"
+                select-strategy="single"
+                show-select
+                v-model:selected="selected"
+              >
+                <template v-slot:item.amount="{ item }">{{
+                  formtCurrency(item.amount)
+                }}</template>
+                <template v-slot:item.posting_date="{ item }">{{
+                  item.posting_date.slice(0, 16)
+                }}</template>
+              </v-data-table>
             </v-col>
           </v-row>
         </v-container>
         <v-card-actions class="mt-4">
           <v-spacer></v-spacer>
-          <v-btn color="error mx-2" dark @click="close_dialog">Close</v-btn>
+          <v-btn color="error" class="mx-2" dark @click="close_dialog">Close</v-btn>
           <v-btn
             v-if="selected.length"
             color="success"
@@ -75,9 +73,8 @@ import { evntBus } from '../../bus';
 export default {
   data: () => ({
     dialog: false,
-    singleSelect: true,
     selected: [],
-    dialog_data: '',
+    dialog_data: [],
     company: '',
     customer: '',
     mode_of_payment: '',
@@ -85,28 +82,28 @@ export default {
     mobile_no: '',
     headers: [
       {
-        text: __('Full Name'),
-        value: 'full_name',
+        title: __('Full Name'),
+        key: 'full_name',
         align: 'start',
         sortable: true,
       },
       {
-        text: __('Mobile No'),
-        value: 'mobile_no',
+        title: __('Mobile No'),
+        key: 'mobile_no',
         align: 'start',
         sortable: true,
       },
       {
-        text: __('Amount'),
-        value: 'amount',
+        title: __('Amount'),
+        key: 'amount',
         align: 'start',
         sortable: true,
       },
       {
-        text: __('Date'),
+        title: __('Date'),
         align: 'start',
         sortable: true,
-        value: 'posting_date',
+        key: 'posting_date',
       },
     ],
   }),
@@ -141,7 +138,8 @@ export default {
     submit_dialog() {
       const vm = this;
       if (this.selected.length > 0) {
-        const selected_payment = this.selected[0].name;
+        // In Vuetify 3, v-model:selected holds item-value (name strings), not full objects
+        const selected_payment = this.selected[0];
         frappe.call({
           method: 'posawesome.posawesome.api.m_pesa.submit_mpesa_payment',
           args: {
@@ -171,11 +169,11 @@ export default {
       this.company = data.company;
       this.customer = data.customer;
       this.mode_of_payment = data.mode_of_payment;
-      this.dialog_data = '';
+      this.dialog_data = [];
       this.selected = [];
     });
   },
-  beforeDestroy() {
+  beforeUnmount() {
     evntBus.$off('open_mpesa_payments');
   },
 };

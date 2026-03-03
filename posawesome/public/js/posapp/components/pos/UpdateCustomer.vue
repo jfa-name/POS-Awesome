@@ -66,38 +66,6 @@
                 ></v-select>
               </v-col>
               <v-col cols="6">
-                <v-menu
-                  ref="birthday_menu"
-                  v-model="birthday_menu"
-                  :close-on-content-click="false"
-                  transition="scale-transition"
-                  dense
-                >
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-text-field
-                      v-model="birthday"
-                      :label="frappe._('Birthday')"
-                      readonly
-                      dense
-                      clearable
-                      hide-details
-                      v-bind="attrs"
-                      v-on="on"
-                      color="primary"
-                    ></v-text-field>
-                  </template>
-                  <v-date-picker
-                    v-model="birthday"
-                    color="primary"
-                    no-title
-                    scrollable
-                    :max="frappe.datetime.now_date()"
-                    @input="birthday_menu = false"
-                  >
-                  </v-date-picker>
-                </v-menu>
-              </v-col>
-              <v-col cols="6">
                 <v-autocomplete
                   clearable
                   dense
@@ -187,8 +155,6 @@ export default {
     tax_id: '',
     mobile_no: '',
     email_id: '',
-    birthday: null,
-    birthday_menu: false,
     group: '',
     groups: [],
     territory: '',
@@ -211,7 +177,6 @@ export default {
       this.tax_id = '';
       this.mobile_no = '';
       this.email_id = '';
-      this.birthday = '';
       this.group = frappe.defaults.get_user_default('Customer Group');
       this.territory = frappe.defaults.get_user_default('Territory');
       this.customer_id = '';
@@ -304,7 +269,6 @@ export default {
           tax_id: this.tax_id,
           mobile_no: this.mobile_no,
           email_id: this.email_id,
-          birthday: this.birthday,
           customer_group: this.group,
           territory: this.territory,
           customer_type: this.customer_type,
@@ -354,7 +318,6 @@ export default {
         this.tax_id = data.tax_id;
         this.mobile_no = data.mobile_no;
         this.email_id = data.email_id;
-        this.birthday = data.birthday;
         this.group = data.customer_group;
         this.territory = data.territory;
         this.loyalty_points = data.loyalty_points;

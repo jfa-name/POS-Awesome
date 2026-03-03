@@ -296,13 +296,11 @@
             v-if="pos_profile.posa_allow_sales_order && deliverynoteType == 'Order'"
           >
             <v-menu
-              ref="order_delivery_date"
               v-model="order_delivery_date"
               :close-on-content-click="false"
               transition="scale-transition"
-              dense
             >
-              <template v-slot:activator="{ on, attrs }">
+              <template v-slot:activator="{ props }">
                 <v-text-field
                   v-model="deliverynote_doc.posa_delivery_date"
                   :label="frappe._('Delivery Date')"
@@ -313,17 +311,14 @@
                   clearable
                   color="primary"
                   hide-details
-                  v-bind="attrs"
-                  v-on="on"
+                  v-bind="props"
                 ></v-text-field>
               </template>
               <v-date-picker
                 v-model="deliverynote_doc.posa_delivery_date"
-                no-title
-                scrollable
                 color="primary"
                 :min="frappe.datetime.now_date()"
-                @input="order_delivery_date = false"
+                @update:model-value="order_delivery_date = false"
               >
               </v-date-picker>
             </v-menu>
@@ -338,47 +333,45 @@
               :label="frappe._('Address')"
               v-model="deliverynote_doc.shipping_address_name"
               :items="addresses"
-              item-text="address_title"
+              item-title="address_title"
               item-value="name"
               background-color="white"
               no-data-text="Address not found"
               hide-details
-              :filter="addressFilter"
-              append-icon="mdi-plus"
-              @click:append="new_address"
+              :custom-filter="addressFilter"
+              append-inner-icon="mdi-plus"
+              @click:append-inner="new_address"
             >
-              <template v-slot:item="data">
-                <template>
-                  <v-list-item-content>
-                    <v-list-item-title
-                      class="primary--text subtitle-1"
-                      v-html="data.item.address_title"
-                    ></v-list-item-title>
-                    <v-list-item-title
-                      v-html="data.item.address_line1"
-                    ></v-list-item-title>
-                    <v-list-item-subtitle
-                      v-if="data.item.custoaddress_line2mer_name"
-                      v-html="data.item.address_line2"
-                    ></v-list-item-subtitle>
-                    <v-list-item-subtitle
-                      v-if="data.item.city"
-                      v-html="data.item.city"
-                    ></v-list-item-subtitle>
-                    <v-list-item-subtitle
-                      v-if="data.item.state"
-                      v-html="data.item.state"
-                    ></v-list-item-subtitle>
-                    <v-list-item-subtitle
-                      v-if="data.item.country"
-                      v-html="data.item.mobile_no"
-                    ></v-list-item-subtitle>
-                    <v-list-item-subtitle
-                      v-if="data.item.address_type"
-                      v-html="data.item.address_type"
-                    ></v-list-item-subtitle>
-                  </v-list-item-content>
-                </template>
+              <template v-slot:item="{ item, props }">
+                <v-list-item v-bind="props" :title="undefined">
+                  <v-list-item-title
+                    class="text-primary text-subtitle-1"
+                    v-html="item.raw.address_title"
+                  ></v-list-item-title>
+                  <v-list-item-title
+                    v-html="item.raw.address_line1"
+                  ></v-list-item-title>
+                  <v-list-item-subtitle
+                    v-if="item.raw.custoaddress_line2mer_name"
+                    v-html="item.raw.address_line2"
+                  ></v-list-item-subtitle>
+                  <v-list-item-subtitle
+                    v-if="item.raw.city"
+                    v-html="item.raw.city"
+                  ></v-list-item-subtitle>
+                  <v-list-item-subtitle
+                    v-if="item.raw.state"
+                    v-html="item.raw.state"
+                  ></v-list-item-subtitle>
+                  <v-list-item-subtitle
+                    v-if="item.raw.country"
+                    v-html="item.raw.mobile_no"
+                  ></v-list-item-subtitle>
+                  <v-list-item-subtitle
+                    v-if="item.raw.address_type"
+                    v-html="item.raw.address_type"
+                  ></v-list-item-subtitle>
+                </v-list-item>
               </template>
             </v-autocomplete>
           </v-col>
@@ -394,7 +387,6 @@
               rows="2"
               :label="frappe._('Additional Notes')"
               v-model="deliverynote_doc.posa_notes"
-              :value="deliverynote_doc.posa_notes"
             ></v-textarea>
           </v-col>
         </v-row>
@@ -416,12 +408,11 @@
             </v-col>
             <v-col cols="6">
               <v-menu
-                ref="po_date_menu"
                 v-model="po_date_menu"
                 :close-on-content-click="false"
                 transition="scale-transition"
               >
-                <template v-slot:activator="{ on, attrs }">
+                <template v-slot:activator="{ props }">
                   <v-text-field
                     v-model="deliverynote_doc.po_date"
                     :label="frappe._('Purchase Order Date')"
@@ -429,17 +420,14 @@
                     outlined
                     dense
                     hide-details
-                    v-bind="attrs"
-                    v-on="on"
+                    v-bind="props"
                     color="primary"
                   ></v-text-field>
                 </template>
                 <v-date-picker
                   v-model="deliverynote_doc.po_date"
-                  no-title
-                  scrollable
                   color="primary"
-                  @input="po_date_menu = false"
+                  @update:model-value="po_date_menu = false"
                 >
                 </v-date-picker>
               </v-menu>
@@ -476,26 +464,24 @@
               :label="frappe._('Sales Person')"
               v-model="sales_person"
               :items="sales_persons"
-              item-text="sales_person_name"
+              item-title="sales_person_name"
               item-value="name"
               background-color="white"
               :no-data-text="__('Sales Person not found')"
               hide-details
-              :filter="salesPersonFilter"
+              :custom-filter="salesPersonFilter"
             >
-              <template v-slot:item="data">
-                <template>
-                  <v-list-item-content>
-                    <v-list-item-title
-                      class="primary--text subtitle-1"
-                      v-html="data.item.sales_person_name"
-                    ></v-list-item-title>
-                    <v-list-item-subtitle
-                      v-if="data.item.sales_person_name != data.item.name"
-                      v-html="`ID: ${data.item.name}`"
-                    ></v-list-item-subtitle>
-                  </v-list-item-content>
-                </template>
+              <template v-slot:item="{ item, props }">
+                <v-list-item v-bind="props" :title="undefined">
+                  <v-list-item-title
+                    class="text-primary text-subtitle-1"
+                    v-html="item.raw.sales_person_name"
+                  ></v-list-item-title>
+                  <v-list-item-subtitle
+                    v-if="item.raw.sales_person_name != item.raw.name"
+                    v-html="`ID: ${item.raw.name}`"
+                  ></v-list-item-subtitle>
+                </v-list-item>
               </template>
             </v-autocomplete>
           </v-col>
@@ -544,7 +530,7 @@
       <v-dialog v-model="phone_dialog" max-width="400px">
         <v-card>
           <v-card-title>
-            <span class="headline primary--text">{{
+            <span class="text-h5 text-primary">{{
               __('Confirm Mobile Number')
             }}</span>
           </v-card-title>
@@ -726,7 +712,7 @@ export default {
         function () {
           printWindow.print();
           // printWindow.close();
-          // NOTE : uncomoent this to auto closing printing window
+          // NOTE : uncomment this to auto closing printing window
         },
         true
       );
@@ -809,18 +795,18 @@ export default {
         },
       });
     },
-    addressFilter(item, queryText, itemText) {
-      const textOne = item.address_title
-        ? item.address_title.toLowerCase()
+    addressFilter(item, queryText) {
+      const textOne = item.raw.address_title
+        ? item.raw.address_title.toLowerCase()
         : '';
-      const textTwo = item.address_line1
-        ? item.address_line1.toLowerCase()
+      const textTwo = item.raw.address_line1
+        ? item.raw.address_line1.toLowerCase()
         : '';
-      const textThree = item.address_line2
-        ? item.address_line2.toLowerCase()
+      const textThree = item.raw.address_line2
+        ? item.raw.address_line2.toLowerCase()
         : '';
-      const textFour = item.city ? item.city.toLowerCase() : '';
-      const textFifth = item.name.toLowerCase();
+      const textFour = item.raw.city ? item.raw.city.toLowerCase() : '';
+      const textFifth = item.raw.name.toLowerCase();
       const searchText = queryText.toLowerCase();
       return (
         textOne.indexOf(searchText) > -1 ||
@@ -859,11 +845,11 @@ export default {
         },
       });
     },
-    salesPersonFilter(item, queryText, itemText) {
-      const textOne = item.sales_person_name
-        ? item.sales_person_name.toLowerCase()
+    salesPersonFilter(item, queryText) {
+      const textOne = item.raw.sales_person_name
+        ? item.raw.sales_person_name.toLowerCase()
         : '';
-      const textTwo = item.name.toLowerCase();
+      const textTwo = item.raw.name.toLowerCase();
       const searchText = queryText.toLowerCase();
 
       return (
@@ -1101,44 +1087,42 @@ export default {
   },
 
   created: function () {
-    this.$nextTick(function () {
-      evntBus.$on('send_deliverynote_doc_payment', (deliverynote_doc) => {
-        this.deliverynote_doc = deliverynote_doc;
-        this.deliverynote_doc.payments = this.deliverynote_doc.payments || [];
-        const default_payment = this.deliverynote_doc.payments.find(
-          (payment) => payment.default == 1
+    evntBus.$on('send_deliverynote_doc_payment', (deliverynote_doc) => {
+      this.deliverynote_doc = deliverynote_doc;
+      this.deliverynote_doc.payments = this.deliverynote_doc.payments || [];
+      const default_payment = this.deliverynote_doc.payments.find(
+        (payment) => payment.default == 1
+      );
+      this.is_credit_sale = 0;
+      this.is_write_off_change = 0;
+      if (default_payment) {
+        default_payment.amount = deliverynote_doc.grand_total.toFixed(
+          this.currency_precision
         );
-        this.is_credit_sale = 0;
-        this.is_write_off_change = 0;
-        if (default_payment) {
-          default_payment.amount = deliverynote_doc.grand_total.toFixed(
-            this.currency_precision
-          );
-        }
-        this.loyalty_amount = 0;
-        this.get_addresses();
-        this.get_sales_person_names();
-      });
-      evntBus.$on('register_pos_profile', (data) => {
-        this.pos_profile = data.pos_profile;
-        this.get_mpesa_modes();
-        this.float_precision =
-          frappe.defaults.get_default('float_precision') || 2;
-        this.currency_precision =
-          frappe.defaults.get_default('currency_precision') || 2;
-      });
-      evntBus.$on('add_the_new_address', (data) => {
-        this.addresses.push(data);
-        this.$forceUpdate();
-      });
-      evntBus.$on('update_deliverynote_type', (data) => {
-        this.deliverynoteType = data;
-        if (this.deliverynote_doc && data != 'Order') {
-          this.deliverynote_doc.posa_delivery_date = null;
-          this.deliverynote_doc.posa_notes = null;
-          this.deliverynote_doc.shipping_address_name = null;
-        }
-      });
+      }
+      this.loyalty_amount = 0;
+      this.get_addresses();
+      this.get_sales_person_names();
+    });
+    evntBus.$on('register_pos_profile', (data) => {
+      this.pos_profile = data.pos_profile;
+      this.get_mpesa_modes();
+      this.float_precision =
+        frappe.defaults.get_default('float_precision') || 2;
+      this.currency_precision =
+        frappe.defaults.get_default('currency_precision') || 2;
+    });
+    evntBus.$on('add_the_new_address', (data) => {
+      this.addresses.push(data);
+      this.$forceUpdate();
+    });
+    evntBus.$on('update_deliverynote_type', (data) => {
+      this.deliverynoteType = data;
+      if (this.deliverynote_doc && data != 'Order') {
+        this.deliverynote_doc.posa_delivery_date = null;
+        this.deliverynote_doc.posa_notes = null;
+        this.deliverynote_doc.shipping_address_name = null;
+      }
     });
     evntBus.$on('update_customer', (customer) => {
       if (this.customer != customer) {
@@ -1159,7 +1143,15 @@ export default {
     document.addEventListener('keydown', this.shortPay.bind(this));
   },
 
-  destroyed() {
+  beforeUnmount() {
+    evntBus.$off('send_deliverynote_doc_payment');
+    evntBus.$off('register_pos_profile');
+    evntBus.$off('add_the_new_address');
+    evntBus.$off('update_deliverynote_type');
+    evntBus.$off('update_customer');
+    evntBus.$off('set_pos_settings');
+    evntBus.$off('set_customer_info_to_edit');
+    evntBus.$off('set_mpesa_payment');
     document.removeEventListener('keydown', this.shortPay);
   },
 

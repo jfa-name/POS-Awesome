@@ -1,7 +1,9 @@
 <template>
     <v-dialog v-model="signatureDialog" max-width="500px">
         <v-card>
-            <v-card-title class="headline">Enter Signature</v-card-title>
+            <v-card-title>
+                <span class="text-h5">Enter Signature</span>
+            </v-card-title>
             <v-card-text>
                 <div ref="signatureContainer" style="width: 100%; height: 200px; position: relative;">
                     <canvas ref="signatureCanvas" style="border: 1px solid #000;"></canvas>

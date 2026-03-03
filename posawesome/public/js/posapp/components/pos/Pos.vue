@@ -99,7 +99,6 @@ export default {
     Drafts,
     ListsInvoices,
     ClosingDialog,
-
     Returns,
     PosOffers,
     PosCoupons,
@@ -190,7 +189,7 @@ export default {
     },
   },
 
-  mounted: function () {
+  created: function () {
     this.$nextTick(function () {
       this.check_opening_entry();
       this.get_pos_setting();
@@ -230,10 +229,10 @@ export default {
       });
     });
   },
-  beforeDestroy() {
+  beforeUnmount() {
     evntBus.$off('close_opening_dialog');
     evntBus.$off('register_pos_data');
-    evntBus.$off('LoadPosProfile');
+    evntBus.$off('show_payment');
     evntBus.$off('show_offers');
     evntBus.$off('show_coupons');
     evntBus.$off('open_closing_dialog');

@@ -1,11 +1,20 @@
-// Vue 2: new Vue() como event bus → NO existe en Vue 3
-// Vue 3: se usa mitt (o similar)
-import mitt from 'mitt';
-
-const emitter = mitt();
+const listeners = {};
 
 export const evntBus = {
-  $on: (event, handler) => emitter.on(event, handler),
-  $off: (event, handler) => emitter.off(event, handler),
-  $emit: (event, ...args) => emitter.emit(event, ...args),
+  $on(event, handler) {
+    if (!listeners[event]) listeners[event] = [];
+    listeners[event].push(handler);
+  },
+  $off(event, handler) {
+    if (!listeners[event]) return;
+    if (handler) {
+      listeners[event] = listeners[event].filter(h => h !== handler);
+    } else {
+      listeners[event] = [];
+    }
+  },
+  $emit(event, ...args) {
+    if (!listeners[event]) return;
+    listeners[event].forEach(handler => handler(...args));
+  },
 };

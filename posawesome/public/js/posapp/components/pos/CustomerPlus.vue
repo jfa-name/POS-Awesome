@@ -78,7 +78,7 @@ export default {
   methods: {
     get_customer_names() {
       const vm = this;
-      vm.customers = [];
+      vm.customers = []; // Limpia antes de cargar
 
       console.log("========== DEBUG INFO ==========");
       console.log("POS Profile completo:", vm.pos_profile);
@@ -86,42 +86,57 @@ export default {
       console.log("posa_delivery_route:", vm.pos_profile.posa_delivery_route);
       console.log("================================");
 
+      // Si está activado el modo ruta de reparto
       if (vm.pos_profile.posa_use_delivery_route) {
         const weekday = moment().format('dddd').toLowerCase();
         const route_name = vm.pos_profile.posa_delivery_route;
         const storageKey = `customer_storage_plus_${route_name}_${weekday}`;
 
+        // DEBUG: Verifica storageKey
+        // console.log("USANDO RUTA:", route_name, "DÍA:", weekday, "KEY:", storageKey);
         console.log("Entrando en modo ruta");
         console.log("Día de semana:", weekday);
         console.log("Ruta seleccionada:", route_name);
         console.log("Storage Key:", storageKey);
 
+        // Intenta cargar de localStorage primero
         if (vm.pos_profile.posa_local_storage && localStorage[storageKey]) {
           vm.customers = JSON.parse(localStorage.getItem(storageKey));
           console.log("CARGADO DE LOCALSTORAGE:", vm.customers);
           if (vm.customers.length > 0) return;
         }
 
+        // Si no hay en localStorage, pide al backend
         frappe.call({
           method: 'posawesome.posawesome.api.posapp.get_ordered_customers_by_route',
-          args: {
+          args: { 
             route_name: route_name,
             weekday: weekday
           },
           callback: function (r) {
+            // DEBUG: Verifica la respuesta del backend 1
+            // console.log("RESPUESTA BACKEND RUTA:", r.message);
+            // if (r.message) {
+            //   vm.customers = r.message;
+            //   if (vm.pos_profile.posa_local_storage) {
+            //     localStorage.setItem(storageKey, JSON.stringify(r.message));
+            //   }
+            // }
+            // DEBUG: Verifica la respuesta del backend 2
             if (r.message) {
               vm.customers = r.message;
               evntBus.$emit('update_customers_list', r.message);
-              if (vm.pos_profile.posa_local_storage) {
-                localStorage.setItem(storageKey, JSON.stringify(r.message));
-              }
+                if (vm.pos_profile.posa_local_storage) {
+                  localStorage.setItem(storageKey, JSON.stringify(r.message));
+                }
+              }            
+            },
+            error: function(r) {
+              console.error("Error en la llamada:", r);
             }
-          },
-          error: function(r) {
-            console.error("Error en la llamada:", r);
-          }
-        });
-      } else {
+          });
+        } else {
+        // Funcionamiento estándar POSAwesome
         if (vm.pos_profile.posa_local_storage && localStorage.customer_storage) {
           vm.customers = JSON.parse(localStorage.getItem('customer_storage'));
           console.log("CARGADO DE LOCALSTORAGE NORMAL:", vm.customers);
@@ -143,13 +158,15 @@ export default {
               }
             }
           },
-        });
+        }); 
       }
     },
     new_customer() {
       evntBus.$emit('open_update_customer', null);
     },
     edit_customer() {
+      // Cargar datos completos del cliente antes de editar
+      const vm = this;
       frappe.call({
         method: 'posawesome.posawesome.api.posapp.get_customer_details',
         args: {
@@ -196,7 +213,7 @@ export default {
 
   computed: {},
 
-  created() {
+  created: function () {
     evntBus.$on('register_pos_profile', (data) => {
       this.pos_profile = data.pos_profile;
       this.get_customer_names();
@@ -236,15 +253,15 @@ export default {
     customer(newValue) {
       console.log("========== CUSTOMER WATCH ==========");
       console.log("Nuevo valor:", newValue);
-
+      
       if (!newValue) {
         console.log("No hay cliente seleccionado");
         return;
       }
-
+      
       const selectedCustomer = this.customers.find(c => c.name === newValue);
       console.log("Cliente seleccionado:", selectedCustomer);
-
+      
       if (selectedCustomer) {
         const customer = {
           name: selectedCustomer.name,
@@ -252,11 +269,12 @@ export default {
           preferred_selling_document: selectedCustomer.preferred_selling_document
         };
         console.log("Emitiendo eventos con cliente:", customer);
-
+        
         this.$emit('customer-selected', customer);
         evntBus.$emit('customer_selected', customer);
         this.customer_info = customer;
-
+        
+        // Verificar facturas pendientes
         this.check_unpaid_invoices(customer.name);
       }
     },

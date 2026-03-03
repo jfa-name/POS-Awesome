@@ -298,38 +298,18 @@
             cols="6"
             v-if="pos_profile.posa_allow_sales_order && invoiceType == 'Order'"
           >
-            <v-menu
-              ref="order_delivery_date"
-              v-model="order_delivery_date"
-              :close-on-content-click="false"
-              transition="scale-transition"
+            <v-text-field
+              v-model="invoice_doc.posa_delivery_date"
+              :label="frappe._('Delivery Date')"
+              outlined
               dense
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  v-model="invoice_doc.posa_delivery_date"
-                  :label="frappe._('Delivery Date')"
-                  readonly
-                  outlined
-                  dense
-                  background-color="white"
-                  clearable
-                  color="primary"
-                  hide-details
-                  v-bind="attrs"
-                  v-on="on"
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                v-model="invoice_doc.posa_delivery_date"
-                no-title
-                scrollable
-                color="primary"
-                :min="frappe.datetime.now_date()"
-                @input="order_delivery_date = false"
-              >
-              </v-date-picker>
-            </v-menu>
+              background-color="white"
+              clearable
+              color="primary"
+              hide-details
+              type="date"
+              :min="frappe.datetime.now_date()"
+            ></v-text-field>
           </v-col>
           <v-col cols="12" v-if="invoice_doc.posa_delivery_date">
             <v-autocomplete
@@ -341,47 +321,38 @@
               :label="frappe._('Address')"
               v-model="invoice_doc.shipping_address_name"
               :items="addresses"
-              item-text="address_title"
+              item-title="address_title"
               item-value="name"
               background-color="white"
               no-data-text="Address not found"
               hide-details
-              :filter="addressFilter"
-              append-icon="mdi-plus"
-              @click:append="new_address"
+              :custom-filter="addressFilter"
+              append-inner-icon="mdi-plus"
+              @click:append-inner="new_address"
             >
-              <template v-slot:item="data">
-                <template>
-                  <v-list-item-content>
-                    <v-list-item-title
-                      class="primary--text subtitle-1"
-                      v-html="data.item.address_title"
-                    ></v-list-item-title>
-                    <v-list-item-title
-                      v-html="data.item.address_line1"
-                    ></v-list-item-title>
-                    <v-list-item-subtitle
-                      v-if="data.item.custoaddress_line2mer_name"
-                      v-html="data.item.address_line2"
-                    ></v-list-item-subtitle>
-                    <v-list-item-subtitle
-                      v-if="data.item.city"
-                      v-html="data.item.city"
-                    ></v-list-item-subtitle>
-                    <v-list-item-subtitle
-                      v-if="data.item.state"
-                      v-html="data.item.state"
-                    ></v-list-item-subtitle>
-                    <v-list-item-subtitle
-                      v-if="data.item.country"
-                      v-html="data.item.mobile_no"
-                    ></v-list-item-subtitle>
-                    <v-list-item-subtitle
-                      v-if="data.item.address_type"
-                      v-html="data.item.address_type"
-                    ></v-list-item-subtitle>
-                  </v-list-item-content>
-                </template>
+              <template v-slot:item="{ item, props }">
+                <v-list-item v-bind="props" :title="item.raw.address_title">
+                  <template #subtitle>
+                    <span v-if="item.raw.address_line1">
+                      {{ item.raw.address_line1 }}<br />
+                    </span>
+                    <span v-if="item.raw.address_line2">
+                      {{ item.raw.address_line2 }}<br />
+                    </span>
+                    <span v-if="item.raw.city">
+                      {{ item.raw.city }}<br />
+                    </span>
+                    <span v-if="item.raw.state">
+                      {{ item.raw.state }}<br />
+                    </span>
+                    <span v-if="item.raw.country">
+                      {{ item.raw.country }}<br />
+                    </span>
+                    <span v-if="item.raw.address_type">
+                      {{ item.raw.address_type }}
+                    </span>
+                  </template>
+                </v-list-item>
               </template>
             </v-autocomplete>
           </v-col>
@@ -397,7 +368,6 @@
               rows="2"
               :label="frappe._('Additional Notes')"
               v-model="invoice_doc.posa_notes"
-              :value="invoice_doc.posa_notes"
             ></v-textarea>
           </v-col>
         </v-row>
@@ -418,34 +388,15 @@
               ></v-text-field>
             </v-col>
             <v-col cols="6">
-              <v-menu
-                ref="po_date_menu"
-                v-model="po_date_menu"
-                :close-on-content-click="false"
-                transition="scale-transition"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    v-model="invoice_doc.po_date"
-                    :label="frappe._('Purchase Order Date')"
-                    readonly
-                    outlined
-                    dense
-                    hide-details
-                    v-bind="attrs"
-                    v-on="on"
-                    color="primary"
-                  ></v-text-field>
-                </template>
-                <v-date-picker
-                  v-model="invoice_doc.po_date"
-                  no-title
-                  scrollable
-                  color="primary"
-                  @input="po_date_menu = false"
-                >
-                </v-date-picker>
-              </v-menu>
+              <v-text-field
+                v-model="invoice_doc.po_date"
+                :label="frappe._('Purchase Order Date')"
+                outlined
+                dense
+                hide-details
+                color="primary"
+                type="date"
+              ></v-text-field>
             </v-col>
           </v-row>
         </div>
@@ -489,35 +440,17 @@
             ></v-switch>
           </v-col>
           <v-col cols="6" v-if="is_credit_sale">
-            <v-menu
-              ref="date_menu"
-              v-model="date_menu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-            >
-              <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  v-model="invoice_doc.due_date"
-                  :label="frappe._('Due Date')"
-                  readonly
-                  outlined
-                  dense
-                  hide-details
-                  v-bind="attrs"
-                  v-on="on"
-                  color="primary"
-                ></v-text-field>
-              </template>
-              <v-date-picker
-                v-model="invoice_doc.due_date"
-                no-title
-                scrollable
-                color="primary"
-                :min="frappe.datetime.now_date()"
-                @input="date_menu = false"
-              >
-              </v-date-picker>
-            </v-menu>
+            <v-text-field
+              v-model="invoice_doc.due_date"
+              :label="frappe._('Due Date')"
+              outlined
+              dense
+              hide-details
+              color="primary"
+              type="date"
+              :min="frappe.datetime.now_date()"
+              @update:modelValue="validate_due_date"
+            ></v-text-field>
           </v-col>
           <v-col
             cols="6"
@@ -528,7 +461,7 @@
               flat
               :label="frappe._('Use Customer Credit')"
               class="my-0 py-0"
-              @change="get_available_credit($event)"
+              @update:modelValue="get_available_credit($event)"
             ></v-switch>
           </v-col>
         </v-row>
@@ -584,26 +517,21 @@
               :label="frappe._('Sales Person')"
               v-model="sales_person"
               :items="sales_persons"
-              item-text="sales_person_name"
+              item-title="sales_person_name"
               item-value="name"
               background-color="white"
               :no-data-text="__('Sales Person not found')"
               hide-details
-              :filter="salesPersonFilter"
+              :custom-filter="salesPersonFilter"
             >
-              <template v-slot:item="data">
-                <template>
-                  <v-list-item-content>
-                    <v-list-item-title
-                      class="primary--text subtitle-1"
-                      v-html="data.item.sales_person_name"
-                    ></v-list-item-title>
-                    <v-list-item-subtitle
-                      v-if="data.item.sales_person_name != data.item.name"
-                      v-html="`ID: ${data.item.name}`"
-                    ></v-list-item-subtitle>
-                  </v-list-item-content>
-                </template>
+              <template v-slot:item="{ item, props }">
+                <v-list-item v-bind="props" :title="item.raw.sales_person_name">
+                  <template #subtitle>
+                    <span v-if="item.raw.sales_person_name != item.raw.name">
+                      ID: {{ item.raw.name }}
+                    </span>
+                  </template>
+                </v-list-item>
               </template>
             </v-autocomplete>
           </v-col>
@@ -875,7 +803,7 @@ export default {
               color: 'success',
             });
             frappe.utils.play_sound('submit');
-            this.addresses = [];
+            vm.addresses = [];
           }
         },
       });
@@ -992,19 +920,16 @@ export default {
         },
       });
     },
-    addressFilter(item, queryText, itemText) {
-      const textOne = item.address_title
-        ? item.address_title.toLowerCase()
-        : '';
-      const textTwo = item.address_line1
-        ? item.address_line1.toLowerCase()
-        : '';
-      const textThree = item.address_line2
-        ? item.address_line2.toLowerCase()
-        : '';
-      const textFour = item.city ? item.city.toLowerCase() : '';
-      const textFifth = item.name.toLowerCase();
-      const searchText = queryText.toLowerCase();
+    // Vuetify 3: custom-filter signature is (value, query, item) => boolean
+    addressFilter(value, query, item) {
+      if (!query) return true;
+      const raw = item.raw;
+      const searchText = query.toLowerCase();
+      const textOne = raw.address_title ? raw.address_title.toLowerCase() : '';
+      const textTwo = raw.address_line1 ? raw.address_line1.toLowerCase() : '';
+      const textThree = raw.address_line2 ? raw.address_line2.toLowerCase() : '';
+      const textFour = raw.city ? raw.city.toLowerCase() : '';
+      const textFifth = raw.name ? raw.name.toLowerCase() : '';
       return (
         textOne.indexOf(searchText) > -1 ||
         textTwo.indexOf(searchText) > -1 ||
@@ -1042,13 +967,15 @@ export default {
         },
       });
     },
-    salesPersonFilter(item, queryText, itemText) {
-      const textOne = item.sales_person_name
-        ? item.sales_person_name.toLowerCase()
+    // Vuetify 3: custom-filter signature is (value, query, item) => boolean
+    salesPersonFilter(value, query, item) {
+      if (!query) return true;
+      const raw = item.raw;
+      const searchText = query.toLowerCase();
+      const textOne = raw.sales_person_name
+        ? raw.sales_person_name.toLowerCase()
         : '';
-      const textTwo = item.name.toLowerCase();
-      const searchText = queryText.toLowerCase();
-
+      const textTwo = raw.name ? raw.name.toLowerCase() : '';
       return (
         textOne.indexOf(searchText) > -1 || textTwo.indexOf(searchText) > -1
       );
@@ -1340,7 +1267,8 @@ export default {
     });
     document.addEventListener('keydown', this.shortPay.bind(this));
   },
-  beforeDestroy() {
+
+  beforeUnmount() {
     evntBus.$off('send_invoice_doc_payment');
     evntBus.$off('register_pos_profile');
     evntBus.$off('add_the_new_address');
@@ -1352,7 +1280,7 @@ export default {
     evntBus.$off('set_mpesa_payment');
   },
 
-  destroyed() {
+  unmounted() {
     document.removeEventListener('keydown', this.shortPay);
   },
 

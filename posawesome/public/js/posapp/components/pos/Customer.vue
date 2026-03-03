@@ -9,47 +9,38 @@
       :label="frappe._('Customer')"
       v-model="customer"
       :items="customers"
-      item-text="customer_name"
+      item-title="customer_name"
       item-value="name"
       background-color="white"
       :no-data-text="__('Customer not found')"
       hide-details
-      :filter="customFilter"
+      :custom-filter="customFilter"
       :disabled="readonly"
-      append-icon="mdi-plus"
-      @click:append="new_customer"
+      append-inner-icon="mdi-plus"
+      @click:append-inner="new_customer"
       prepend-inner-icon="mdi-account-edit"
       @click:prepend-inner="edit_customer"
     >
-      <template v-slot:item="data">
-        <template>
-          <v-list-item-content>
-            <v-list-item-title
-              class="primary--text subtitle-1"
-              v-html="data.item.customer_name"
-            ></v-list-item-title>
-            <v-list-item-subtitle
-              v-if="data.item.customer_name != data.item.name"
-              v-html="`ID: ${data.item.name}`"
-            ></v-list-item-subtitle>
-            <v-list-item-subtitle
-              v-if="data.item.tax_id"
-              v-html="`TAX ID: ${data.item.tax_id}`"
-            ></v-list-item-subtitle>
-            <v-list-item-subtitle
-              v-if="data.item.email_id"
-              v-html="`Email: ${data.item.email_id}`"
-            ></v-list-item-subtitle>
-            <v-list-item-subtitle
-              v-if="data.item.mobile_no"
-              v-html="`Mobile No: ${data.item.mobile_no}`"
-            ></v-list-item-subtitle>
-            <v-list-item-subtitle
-              v-if="data.item.primary_address"
-              v-html="`Primary Address: ${data.item.primary_address}`"
-            ></v-list-item-subtitle>
-          </v-list-item-content>
-        </template>
+      <template v-slot:item="{ item, props }">
+        <v-list-item v-bind="props" :title="item.raw.customer_name">
+          <template #subtitle>
+            <span v-if="item.raw.customer_name != item.raw.name">
+              ID: {{ item.raw.name }}<br />
+            </span>
+            <span v-if="item.raw.tax_id">
+              TAX ID: {{ item.raw.tax_id }}<br />
+            </span>
+            <span v-if="item.raw.email_id">
+              Email: {{ item.raw.email_id }}<br />
+            </span>
+            <span v-if="item.raw.mobile_no">
+              Mobile No: {{ item.raw.mobile_no }}<br />
+            </span>
+            <span v-if="item.raw.primary_address">
+              Primary Address: {{ item.raw.primary_address }}
+            </span>
+          </template>
+        </v-list-item>
       </template>
     </v-autocomplete>
     <div class="mb-8">
@@ -108,7 +99,6 @@ export default {
     },
     edit_customer() {
       // Cargar datos completos del cliente antes de editar
-      const vm = this;
       frappe.call({
         method: 'posawesome.posawesome.api.posapp.get_customer_details',
         args: {
@@ -121,15 +111,17 @@ export default {
         },
       });
     },
-    customFilter(item, queryText, itemText) {
-      const textOne = item.customer_name
-        ? item.customer_name.toLowerCase()
-        : '';
-      const textTwo = item.tax_id ? item.tax_id.toLowerCase() : '';
-      const textThree = item.email_id ? item.email_id.toLowerCase() : '';
-      const textFour = item.mobile_no ? item.mobile_no.toLowerCase() : '';
-      const textFifth = item.name.toLowerCase();
-      const searchText = queryText.toLowerCase();
+    // Vuetify 3: custom-filter signature is (value, query, item) => boolean
+    // item.raw contains the original object
+    customFilter(value, query, item) {
+      if (!query) return true;
+      const raw = item.raw;
+      const searchText = query.toLowerCase();
+      const textOne = raw.customer_name ? raw.customer_name.toLowerCase() : '';
+      const textTwo = raw.tax_id ? raw.tax_id.toLowerCase() : '';
+      const textThree = raw.email_id ? raw.email_id.toLowerCase() : '';
+      const textFour = raw.mobile_no ? raw.mobile_no.toLowerCase() : '';
+      const textFifth = raw.name ? raw.name.toLowerCase() : '';
 
       return (
         textOne.indexOf(searchText) > -1 ||
@@ -189,18 +181,18 @@ export default {
       if (!newValue) {
         return;
       }
-      
+
       evntBus.$emit('update_customer', newValue);
-      
+
       // Buscar el cliente seleccionado en la lista
       const selectedCustomer = this.customers.find(c => c.name === newValue);
-      
+
       if (selectedCustomer) {
         this.customer_info = {
           name: selectedCustomer.name,
           customer_name: selectedCustomer.customer_name,
         };
-        
+
         // Verificar facturas pendientes
         this.check_unpaid_invoices(newValue);
       }

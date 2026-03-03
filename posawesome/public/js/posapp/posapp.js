@@ -3,7 +3,8 @@ import { createApp } from 'vue';
 import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
-import { aliases, mdi } from 'vuetify/iconsets/mdi-svg';
+// ← NO importar '@mdi/font/css/materialdesignicons.css' aquí
+//   Se carga como asset estático desde hooks.py
 
 frappe.provide('frappe.PosApp');
 
@@ -23,14 +24,11 @@ frappe.PosApp.posapp = class {
             icons: {
                 defaultSet: 'mdi',
             },
-            locale: {
-                rtl: { [frappe.boot.lang]: frappe.utils.is_rtl() },
-            },
             theme: {
                 themes: {
                     light: {
                         colors: {
-                            background: '#FFFFFF',
+                            background:    '#FFFFFF',
                             primary:       '#0097A7',
                             secondary:     '#00BCD4',
                             accent:        '#9575CD',

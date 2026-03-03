@@ -223,6 +223,7 @@
                   background-color="white"
                   hide-details
                   :value="formtCurrency(total_selected_invoices)"
+                  total_selected_invoices
                   readonly
                   flat
                   :prefix="currencySymbol(pos_profile.currency)"
@@ -242,6 +243,7 @@
                   background-color="white"
                   hide-details
                   :value="formtCurrency(total_selected_payments)"
+                  total_selected_payments
                   readonly
                   flat
                   :prefix="currencySymbol(pos_profile.currency)"
@@ -261,6 +263,7 @@
                   background-color="white"
                   hide-details
                   :value="formtCurrency(total_selected_mpesa_payments)"
+                  total_selected_mpesa_payments
                   readonly
                   flat
                   :prefix="currencySymbol(pos_profile.currency)"
@@ -272,6 +275,7 @@
             <div v-if="pos_profile.posa_allow_make_new_payments">
               <h4 class="text-primary">Make New Payment</h4>
               <v-row
+                v-if="payment_methods.length"
                 v-for="method in payment_methods"
                 :key="method.row_id"
               >
@@ -289,6 +293,7 @@
                     @change="
                       setFormatedCurrency(method, 'amount', null, true, $event)
                     "
+                    payments_methods
                     flat
                     :prefix="currencySymbol(pos_profile.currency)"
                   ></v-text-field
@@ -309,6 +314,7 @@
                   background-color="white"
                   hide-details
                   :value="formtCurrency(total_of_diff)"
+                  total_of_diff
                   flat
                   readonly
                   :prefix="currencySymbol(pos_profile.currency)"
@@ -451,7 +457,7 @@ export default {
           key: "full_name",
         },
         {
-          title: __("Mobile Number"),
+          title: __("Nobile Number"),
           align: "start",
           sortable: true,
           key: "mobile_no",
@@ -547,11 +553,8 @@ export default {
       }
     },
     onInvoicesSelectionChanged(newSelection) {
-      if (newSelection.length > this.selected_invoices.length) {
-        // An item was added — find the newly added one
-        const prev = new Set(this.selected_invoices.map(i => i.name));
-        const added = newSelection.find(i => !prev.has(i.name));
-        if (added) evntBus.$emit("set_customer", added.customer);
+      if (newSelection && newSelection.length > 0) {
+        evntBus.$emit("set_customer", newSelection[0].customer);
       }
     },
     get_outstanding_invoices() {
@@ -630,6 +633,7 @@ export default {
         });
     },
     set_payment_methods() {
+      // get payment methods from pos profile
       if (!this.pos_profile.posa_allow_make_new_payments) return;
       this.payment_methods = [];
       this.pos_profile.payments.forEach((method) => {
@@ -768,21 +772,22 @@ export default {
     },
   },
 
-  created() {
-    this.check_opening_entry();
-    evntBus.$on("update_customer", (customer_name) => {
-      this.clear_all(true);
-      this.customer_name = customer_name;
-      this.fetch_customer_details();
-      this.get_outstanding_invoices();
-      this.get_unallocated_payments();
-      this.get_draft_mpesa_payments_register();
-    });
-    evntBus.$on("fetch_customer_details", () => {
-      this.fetch_customer_details();
+  mounted: function () {
+    this.$nextTick(function () {
+      this.check_opening_entry();
+      evntBus.$on("update_customer", (customer_name) => {
+        this.clear_all(true);
+        this.customer_name = customer_name;
+        this.fetch_customer_details();
+        this.get_outstanding_invoices();
+        this.get_unallocated_payments();
+        this.get_draft_mpesa_payments_register();
+      });
+      evntBus.$on("fetch_customer_details", () => {
+        this.fetch_customer_details();
+      });
     });
   },
-
   beforeUnmount() {
     evntBus.$off("update_customer");
     evntBus.$off("fetch_customer_details");

@@ -1,9 +1,6 @@
 <template>
   <v-row justify="center">
-    <v-dialog v-model="dialog" persistent max-width="600px">
-      <!-- <template v-slot:activator="{ on, attrs }">
-        <v-btn color="primary" dark v-bind="attrs" v-on="on">Open Dialog</v-btn>
-      </template>-->
+    <v-dialog :model-value="dialog" @update:model-value="$emit('update:dialog', $event)" persistent max-width="600px">
       <v-card>
         <v-card-title>
           <span class="headline primary--text">{{
@@ -30,33 +27,26 @@
                 ></v-autocomplete>
               </v-col>
               <v-col cols="12">
-                <template>
-                  <v-data-table
-                    :headers="payments_methods_headers"
-                    :items="payments_methods"
-                    item-key="mode_of_payment"
-                    class="elevation-1"
-                    :items-per-page="itemsPerPage"
-                    hide-default-footer
-                  >
-                    <template v-slot:item.amount="props">
-                      <v-edit-dialog :return-value.sync="props.item.amount">
-                        {{ currencySymbol(props.item.currency) }}
-                        {{ formtCurrency(props.item.amount) }}
-                        <template v-slot:input>
-                          <v-text-field
-                            v-model="props.item.amount"
-                            :rules="[max25chars]"
-                            :label="frappe._('Edit')"
-                            single-line
-                            counter
-                            type="number"
-                          ></v-text-field>
-                        </template>
-                      </v-edit-dialog>
-                    </template>
-                  </v-data-table>
-                </template>
+                <v-data-table
+                  :headers="payments_methods_headers"
+                  :items="payments_methods"
+                  item-key="mode_of_payment"
+                  class="elevation-1"
+                  :items-per-page="itemsPerPage"
+                  hide-default-footer
+                >
+                  <template v-slot:item.amount="props">
+                    <v-text-field
+                      v-model="props.item.amount"
+                      :rules="[max25chars]"
+                      :label="frappe._('Edit')"
+                      single-line
+                      type="number"
+                      density="compact"
+                      variant="underlined"
+                    ></v-text-field>
+                  </template>
+                </v-data-table>
               </v-col>
             </v-row>
           </v-container>
@@ -83,6 +73,7 @@ import format from '../../format';
 export default {
   mixins: [format],
   props: ['dialog'],
+  emits: ['update:dialog'],
   data: () => ({
     dialog_data: {},
     is_loading: false,
@@ -95,24 +86,21 @@ export default {
     payments_methods: [],
     payments_methods_headers: [
       {
-        text: __('Mode of Payment'),
+        title: __('Mode of Payment'),
         align: 'start',
         sortable: false,
-        value: 'mode_of_payment',
+        key: 'mode_of_payment',
       },
       {
-        text: __('Opening Amount'),
-        value: 'amount',
+        title: __('Opening Amount'),
+        key: 'amount',
         align: 'center',
         sortable: false,
       },
     ],
     itemsPerPage: 100,
-    max25chars: (v) => v.length <= 12 || 'Input too long!', // TODO : should validate as number
+    max25chars: (v) => String(v).length <= 12 || 'Input too long!',
     pagination: {},
-    snack: false, // TODO : need to remove
-    snackColor: '', // TODO : need to remove
-    snackText: '', // TODO : need to remove
   }),
   watch: {
     company(val) {
@@ -180,7 +168,7 @@ export default {
             evntBus.$emit('register_pos_data', r.message);
             evntBus.$emit('set_company', r.message.company);
             vm.close_opening_dialog();
-            is_loading = false;
+            vm.is_loading = false;
           }
         });
     },
