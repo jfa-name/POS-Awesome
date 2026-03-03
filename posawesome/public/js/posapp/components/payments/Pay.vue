@@ -13,7 +13,7 @@
               <v-col md="7" cols="12">
                 <p>
                   <strong>{{ __("Invoices") }}</strong>
-                  <span v-if="total_outstanding_amount" class="primary--text"
+                  <span v-if="total_outstanding_amount" class="text-primary"
                     >{{ __("- Total Outstanding") }} :
                     {{ currencySymbol(pos_profile.currency) }}
                     {{ formtCurrency(total_outstanding_amount) }}</span
@@ -58,20 +58,20 @@
             <v-data-table
               :headers="invoices_headers"
               :items="outstanding_invoices"
-              item-key="name"
+              item-value="name"
               class="elevation-1 mt-0"
               show-select
               v-model="selected_invoices"
               :loading="invoices_loading"
               checkbox-color="primary"
-              @item-selected="onInvoiceSelected"
+              @update:model-value="onInvoicesSelectionChanged"
             >
               <template v-slot:item.grand_total="{ item }">
                 {{ currencySymbol(item.currency) }}
                 {{ formtCurrency(item.grand_total) }}
               </template>
               <template v-slot:item.outstanding_amount="{ item }">
-                <span class="primary--text"
+                <span class="text-primary"
                   >{{ currencySymbol(item.currency) }}
                   {{ formtCurrency(item.outstanding_amount) }}</span
                 >
@@ -89,7 +89,7 @@
               <v-col md="7" cols="12">
                 <p>
                   <strong>{{ __("Payments") }}</strong>
-                  <span v-if="total_unallocated_amount" class="primary--text">
+                  <span v-if="total_unallocated_amount" class="text-primary">
                     {{ __("- Total Unallocated") }} :
                     {{ currencySymbol(pos_profile.currency) }}
                     {{ formtCurrency(total_unallocated_amount) }}
@@ -109,9 +109,8 @@
             <v-data-table
               :headers="unallocated_payments_headers"
               :items="unallocated_payments"
-              item-key="name"
+              item-value="name"
               class="elevation-1 mt-0"
-              :single-select="singleSelect"
               show-select
               v-model="selected_payments"
               :loading="unallocated_payments_loading"
@@ -122,7 +121,7 @@
                 {{ formtCurrency(item.paid_amount) }}
               </template>
               <template v-slot:item.unallocated_amount="{ item }">
-                <span class="primary--text"
+                <span class="text-primary"
                   >{{ currencySymbol(item.currency) }}
                   {{ formtCurrency(item.unallocated_amount) }}</span
                 >
@@ -188,16 +187,15 @@
             <v-data-table
               :headers="mpesa_payment_headers"
               :items="mpesa_payments"
-              item-key="name"
+              item-value="name"
               class="elevation-1 mt-0"
-              :single-select="singleSelect"
               show-select
               v-model="selected_mpesa_payments"
               :loading="mpesa_payments_loading"
               checkbox-color="primary"
             >
               <template v-slot:item.amount="{ item }">
-                <span class="primary--text">
+                <span class="text-primary">
                   {{ currencySymbol(item.currency) }}
                   {{ formtCurrency(item.amount) }}
                 </span>
@@ -212,7 +210,7 @@
           style="max-height: 94vh; height: 94vh"
         >
           <strong>
-            <h4 class="primary--text">Totals</h4>
+            <h4 class="text-primary">Totals</h4>
             <v-row>
               <v-col md="7" class="mt-1">
                 <span>{{ __("Total Invoices:") }}</span>
@@ -275,7 +273,7 @@
 
             <v-divider v-if="payment_methods.length"></v-divider>
             <div v-if="pos_profile.posa_allow_make_new_payments">
-              <h4 class="primary--text">Make New Payment</h4>
+              <h4 class="text-primary">Make New Payment</h4>
               <v-row
                 v-if="payment_methods.length"
                 v-for="method in payment_methods"
@@ -306,7 +304,7 @@
             <v-divider></v-divider>
             <v-row>
               <v-col md="7">
-                <h4 class="primary--text mt-1">{{ __("Difference:") }}</h4>
+                <h4 class="text-primary mt-1">{{ __("Difference:") }}</h4>
               </v-col>
               <v-col md="5">
                 <v-text-field
@@ -354,7 +352,6 @@ export default {
       customer_name: "",
       customer_info: "",
       company: "",
-      singleSelect: false,
       invoices_loading: false,
       unallocated_payments_loading: false,
       mpesa_payments_loading: false,
@@ -372,110 +369,110 @@ export default {
       mpesa_search_mobile: "",
       invoices_headers: [
         {
-          text: __("Invoice"),
+          title: __("Invoice"),
           align: "start",
           sortable: true,
-          value: "name",
+          key: "name",
         },
         {
-          text: __("Customer"),
+          title: __("Customer"),
           align: "start",
           sortable: true,
-          value: "customer_name",
+          key: "customer_name",
         },
         {
-          text: __("Date"),
+          title: __("Date"),
           align: "start",
           sortable: true,
-          value: "posting_date",
+          key: "posting_date",
         },
         {
-          text: __("Due Date"),
+          title: __("Due Date"),
           align: "start",
           sortable: true,
-          value: "due_date",
+          key: "due_date",
         },
         {
-          text: __("Total"),
+          title: __("Total"),
           align: "end",
           sortable: true,
-          value: "grand_total",
+          key: "grand_total",
         },
         {
-          text: __("Outstanding"),
+          title: __("Outstanding"),
           align: "end",
           sortable: true,
-          value: "outstanding_amount",
+          key: "outstanding_amount",
         },
       ],
       unallocated_payments_headers: [
         {
-          text: __("Payment ID"),
+          title: __("Payment ID"),
           align: "start",
           sortable: true,
-          value: "name",
+          key: "name",
         },
         {
-          text: __("Customer"),
+          title: __("Customer"),
           align: "start",
           sortable: true,
-          value: "customer_name",
+          key: "customer_name",
         },
         {
-          text: __("Date"),
+          title: __("Date"),
           align: "start",
           sortable: true,
-          value: "posting_date",
+          key: "posting_date",
         },
         {
-          text: __("Mode"),
+          title: __("Mode"),
           align: "start",
           sortable: true,
-          value: "mode_of_payment",
+          key: "mode_of_payment",
         },
         {
-          text: __("Paid"),
+          title: __("Paid"),
           align: "end",
           sortable: true,
-          value: "paid_amount",
+          key: "paid_amount",
         },
         {
-          text: __("Unallocated"),
+          title: __("Unallocated"),
           align: "end",
           sortable: true,
-          value: "unallocated_amount",
+          key: "unallocated_amount",
         },
       ],
       mpesa_payment_headers: [
         {
-          text: __("Payment ID"),
+          title: __("Payment ID"),
           align: "start",
           sortable: true,
-          value: "transid",
+          key: "transid",
         },
         {
-          text: __("Full Name"),
+          title: __("Full Name"),
           align: "start",
           sortable: true,
-          value: "full_name",
+          key: "full_name",
         },
         {
-          text: __("Nobile Number"),
+          title: __("Nobile Number"),
           align: "start",
           sortable: true,
-          value: "mobile_no",
+          key: "mobile_no",
         },
         {
-          text: __("Date"),
+          title: __("Date"),
           align: "start",
           sortable: true,
-          value: "posting_date",
+          key: "posting_date",
         },
         {
-          text: __("Amount"),
+          title: __("Amount"),
           align: "end",
           sortable: true,
-          value: "amount",
+          key: "amount",
         },
       ],
     };
@@ -555,8 +552,10 @@ export default {
         });
       }
     },
-    onInvoiceSelected(event) {
-      evntBus.$emit("set_customer", event.item.customer);
+    onInvoicesSelectionChanged(newSelection) {
+      if (newSelection && newSelection.length > 0) {
+        evntBus.$emit("set_customer", newSelection[0].customer);
+      }
     },
     get_outstanding_invoices() {
       this.invoices_loading = true;
@@ -789,7 +788,7 @@ export default {
       });
     });
   },
-  beforeDestroy() {
+  beforeUnmount() {
     evntBus.$off("update_customer");
     evntBus.$off("fetch_customer_details");
   },

@@ -3,6 +3,7 @@
     "canvas": "^2.11.2",
     "lodash": "^4.17.21",
     "signature_pad": "^4.1.6",
-    "vuetify": "^2.6.10"
+    "vuetify": "^3.7.0",
+    "@mdi/font": "^7.4.47"
   }
 }
