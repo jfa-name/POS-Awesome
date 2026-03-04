@@ -8,18 +8,11 @@ import frappe
 from frappe.utils import nowdate, flt, cstr
 from frappe import _
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
-from erpnext.stock.get_item_details import (
-    get_item_details,
-    get_item_tax_template,
-)
+from erpnext.stock.get_item_details import get_item_details
 from erpnext.accounts.doctype.pos_profile.pos_profile import get_item_groups
 from frappe.utils.background_jobs import enqueue
 from erpnext.accounts.party import get_party_bank_account
-from erpnext.stock.doctype.batch.batch import (
-    get_batch_no,
-    get_batch_qty,
-    set_batch_nos,
-)
+from erpnext.stock.doctype.batch.batch import get_batch_qty
 from erpnext.accounts.doctype.payment_request.payment_request import (
     get_dummy_message,
     get_existing_payment_request_amount,
@@ -678,7 +671,9 @@ def submit_invoice(invoice, data):
     payments = invoice_doc.payments
 
     if frappe.get_value("POS Profile", invoice_doc.pos_profile, "posa_auto_set_batch"):
-        set_batch_nos(invoice_doc, "warehouse", throw=True)
+        # In ERPNext v16, batch assignment is managed via Serial and Batch Bundle
+        # automatically during Sales Invoice submit. No manual set_batch_nos needed.
+        pass
     set_batch_nos_for_bundels(invoice_doc, "warehouse", throw=True)
     invoice_doc.due_date = data.get("due_date")
     invoice_doc.flags.ignore_permissions = True
@@ -777,25 +772,15 @@ def submit_deliverynote(data):
 
 
 def set_batch_nos_for_bundels(doc, warehouse_field, throw=False):
-    """Automatically select `batch_no` for outgoing items in item table"""
-    for d in doc.packed_items:
-        qty = d.get("stock_qty") or d.get("transfer_qty") or d.get("qty") or 0
-        has_batch_no = frappe.db.get_value("Item", d.item_code, "has_batch_no")
-        warehouse = d.get(warehouse_field, None)
-        if has_batch_no and warehouse and qty > 0:
-            if not d.batch_no:
-                d.batch_no = get_batch_no(
-                    d.item_code, warehouse, qty, throw, d.serial_no
-                )
-            else:
-                batch_qty = get_batch_qty(
-                    batch_no=d.batch_no, warehouse=warehouse)
-                if flt(batch_qty, d.precision("qty")) < flt(qty, d.precision("qty")):
-                    frappe.throw(
-                        _(
-                            "Row #{0}: The batch {1} has only {2} qty. Please select another batch which has {3} qty available or split the row into multiple rows, to deliver/issue from multiple batches"
-                        ).format(d.idx, d.batch_no, batch_qty, qty)
-                    )
+    """Automatically select batch_no for outgoing packed items.
+
+    NOTE: In ERPNext v16, batch assignment for packed items is managed
+    via Serial and Batch Bundle automatically during document submit.
+    This function is kept as a no-op for call-site compatibility.
+    """
+    # In ERPNext v16, ERPNext manages batch assignment for packed_items
+    # internally through Serial and Batch Bundle during submit.
+    pass
 
 
 def redeeming_customer_credit(
