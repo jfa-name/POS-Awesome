@@ -53,7 +53,7 @@ frappe.PosApp.posapp = class {
         });
 
         const app = createApp(Home);
-        app.config.globalProperties.__ = window.__;  // Register Frappe translation function for Vue 3 templates
+        app.config.globalProperties.__ = window.__ || ((s) => s);  // Register Frappe translation function for Vue 3 templates
         app.use(vuetify);
         app.mount(this.$el[0]);
         this.vue = app;
