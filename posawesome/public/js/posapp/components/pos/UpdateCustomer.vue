@@ -21,7 +21,7 @@
                 <v-text-field
                   dense
                   color="primary"
-                  :label="frappe._('Customer Name') + ' *'"
+                  :label="__('Customer Name') + ' *'"
                   background-color="white"
                   hide-details
                   v-model="customer_name"
@@ -31,7 +31,7 @@
                 <v-text-field
                   dense
                   color="primary"
-                  :label="frappe._('Tax ID')"
+                  :label="__('Tax ID')"
                   background-color="white"
                   hide-details
                   v-model="tax_id"
@@ -41,7 +41,7 @@
                 <v-text-field
                   dense
                   color="primary"
-                  :label="frappe._('Mobile No')"
+                  :label="__('Mobile No')"
                   background-color="white"
                   hide-details
                   v-model="mobile_no"
@@ -51,7 +51,7 @@
                 <v-text-field
                   dense
                   color="primary"
-                  :label="frappe._('Email Id')"
+                  :label="__('Email Id')"
                   background-color="white"
                   hide-details
                   v-model="email_id"
@@ -71,7 +71,7 @@
                   dense
                   auto-select-first
                   color="primary"
-                  :label="frappe._('Customer Group') + ' *'"
+                  :label="__('Customer Group') + ' *'"
                   v-model="group"
                   :items="groups"
                   background-color="white"
@@ -87,7 +87,7 @@
                   dense
                   auto-select-first
                   color="primary"
-                  :label="frappe._('Territory') + ' *'"
+                  :label="__('Territory') + ' *'"
                   v-model="territory"
                   :items="territorys"
                   background-color="white"
@@ -100,7 +100,7 @@
               <v-col cols="6" v-if="loyalty_program">
                 <v-text-field
                   v-model="loyalty_program"
-                  :label="frappe._('Loyalty Program')"
+                  :label="__('Loyalty Program')"
                   dense
                   readonly
                   hide-details
@@ -109,7 +109,7 @@
               <v-col cols="6" v-if="loyalty_points">
                 <v-text-field
                   v-model="loyalty_points"
-                  :label="frappe._('Loyalty Points')"
+                  :label="__('Loyalty Points')"
                   dense
                   readonly
                   hide-details
@@ -118,7 +118,7 @@
               <v-col cols="12" v-if="customer_details">
                 <v-textarea
                   v-model="customer_details"
-                  :label="frappe._('Customer Details')"
+                  :label="__('Customer Details')"
                   readonly
                   outlined
                   dense

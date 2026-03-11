@@ -154,7 +154,7 @@
                   dense
                   outlined
                   color="primary"
-                  :label="frappe._('Search by Name')"
+                  :label="__('Search by Name')"
                   background-color="white"
                   hide-details
                   v-model="mpesa_search_name"
@@ -166,7 +166,7 @@
                   dense
                   outlined
                   color="primary"
-                  :label="frappe._('Search by Mobile')"
+                  :label="__('Search by Mobile')"
                   background-color="white"
                   hide-details
                   v-model="mpesa_search_mobile"

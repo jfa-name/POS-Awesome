@@ -14,7 +14,7 @@
                 <v-text-field
                   dense
                   color="primary"
-                  :label="frappe._('Address Name')"
+                  :label="__('Address Name')"
                   background-color="white"
                   hide-details
                   v-model="address.name"
@@ -24,7 +24,7 @@
                 <v-text-field
                   dense
                   color="primary"
-                  :label="frappe._('Address Line 1')"
+                  :label="__('Address Line 1')"
                   background-color="white"
                   hide-details
                   v-model="address.address_line1"
@@ -34,7 +34,7 @@
                 <v-text-field
                   dense
                   color="primary"
-                  :label="frappe._('Address Line 2')"
+                  :label="__('Address Line 2')"
                   background-color="white"
                   hide-details
                   v-model="address.address_line2"

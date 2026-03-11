@@ -9,7 +9,7 @@
           <v-row class="mb-4">
             <v-text-field
               color="primary"
-              :label="frappe._('Full Name')"
+              :label="__('Full Name')"
               background-color="white"
               hide-details
               v-model="full_name"
@@ -19,7 +19,7 @@
             ></v-text-field>
             <v-text-field
               color="primary"
-              :label="frappe._('Mobile No')"
+              :label="__('Mobile No')"
               background-color="white"
               hide-details
               v-model="mobile_no"

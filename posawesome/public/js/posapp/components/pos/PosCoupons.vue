@@ -14,7 +14,7 @@
               dense
               outlined
               color="primary"
-              :label="frappe._('Coupon')"
+              :label="__('Coupon')"
               background-color="white"
               hide-details
               v-model="new_coupon"

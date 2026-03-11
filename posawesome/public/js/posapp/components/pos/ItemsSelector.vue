@@ -19,7 +19,7 @@
             autofocus
             outlined
             color="primary"
-            :label="frappe._('Search Items')"
+            :label="__('Search Items')"
             hint="Search by item code, serial number, batch no or barcode"
             background-color="white"
             hide-details
@@ -34,7 +34,7 @@
             dense
             outlined
             color="primary"
-            :label="frappe._('QTY')"
+            :label="__('QTY')"
             background-color="white"
             hide-details
             v-model.number="qty"
@@ -128,7 +128,7 @@
         <v-col cols="12">
           <v-select
             :items="items_group"
-            :label="frappe._('Items Group')"
+            :label="__('Items Group')"
             dense
             outlined
             hide-details

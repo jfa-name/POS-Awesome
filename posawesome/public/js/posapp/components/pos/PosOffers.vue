@@ -54,7 +54,7 @@
                       outlined
                       dense
                       color="primary"
-                      :label="frappe._('Give Item')"
+                      :label="__('Give Item')"
                       :disabled="
                         item.apply_type != 'Item Group' ||
                         item.replace_item ||
