@@ -17,7 +17,7 @@
             <v-text-field
               outlined
               color="primary"
-              :label="frappe._('Paid Amount')"
+              :label="__('Paid Amount')"
               background-color="white"
               hide-details
               :value="formtCurrency(total_payments)"
@@ -31,7 +31,7 @@
             <v-text-field
               outlined
               color="primary"
-              :label="frappe._(diff_lable)"
+              :label="__(diff_lable)"
               background-color="white"
               hide-details
               :value="formtCurrency(diff_payment)"
@@ -45,7 +45,7 @@
             <v-text-field
               outlined
               color="primary"
-              :label="frappe._('Paid Change')"
+              :label="__('Paid Change')"
               background-color="white"
               v-model="paid_change"
               @input="set_paid_change()"
@@ -60,7 +60,7 @@
             <v-text-field
               outlined
               color="primary"
-              :label="frappe._('Credit Change')"
+              :label="__('Credit Change')"
               background-color="white"
               hide-details
               :value="formtCurrency(credit_change)"
@@ -83,7 +83,7 @@
                 dense
                 outlined
                 color="primary"
-                :label="frappe._(payment.mode_of_payment)"
+                :label="__(payment.mode_of_payment)"
                 background-color="white"
                 hide-details
                 v-model="payment.amount"
@@ -163,7 +163,7 @@
               dense
               outlined
               color="primary"
-              :label="frappe._('Redeem Loyalty Points')"
+              :label="__('Redeem Loyalty Points')"
               background-color="white"
               hide-details
               v-model="loyalty_amount"
@@ -176,7 +176,7 @@
               dense
               outlined
               color="primary"
-              :label="frappe._('You can redeem upto')"
+              :label="__('You can redeem upto')"
               background-color="white"
               hide-details
               :value="formtFloat(available_pioints_amount)"
@@ -201,7 +201,7 @@
               outlined
               disabled
               color="primary"
-              :label="frappe._('Redeemed Customer Credit')"
+              :label="__('Redeemed Customer Credit')"
               background-color="white"
               hide-details
               v-model="redeemed_customer_credit"
@@ -214,7 +214,7 @@
               dense
               outlined
               color="primary"
-              :label="frappe._('You can redeem credit upto')"
+              :label="__('You can redeem credit upto')"
               background-color="white"
               hide-details
               :value="formtCurrency(available_customer_credit)"
@@ -231,7 +231,7 @@
               dense
               outlined
               color="primary"
-              :label="frappe._('Net Total')"
+              :label="__('Net Total')"
               background-color="white"
               hide-details
               :value="formtCurrency(deliverynote_doc.net_total)"
@@ -244,7 +244,7 @@
               dense
               outlined
               color="primary"
-              :label="frappe._('Tax and Charges')"
+              :label="__('Tax and Charges')"
               background-color="white"
               hide-details
               :value="formtCurrency(deliverynote_doc.total_taxes_and_charges)"
@@ -257,7 +257,7 @@
               dense
               outlined
               color="primary"
-              :label="frappe._('Total Amount')"
+              :label="__('Total Amount')"
               background-color="white"
               hide-details
               :value="formtCurrency(deliverynote_doc.total)"
@@ -270,7 +270,7 @@
               dense
               outlined
               color="primary"
-              :label="frappe._('Discount Amount')"
+              :label="__('Discount Amount')"
               background-color="white"
               hide-details
               :value="formtCurrency(deliverynote_doc.discount_amount)"
@@ -283,7 +283,7 @@
               dense
               outlined
               color="primary"
-              :label="frappe._('Grand Total')"
+              :label="__('Grand Total')"
               background-color="white"
               hide-details
               :value="formtCurrency(deliverynote_doc.grand_total)"
@@ -303,7 +303,7 @@
               <template v-slot:activator="{ props }">
                 <v-text-field
                   v-model="deliverynote_doc.posa_delivery_date"
-                  :label="frappe._('Delivery Date')"
+                  :label="__('Delivery Date')"
                   readonly
                   outlined
                   dense
@@ -330,7 +330,7 @@
               auto-select-first
               outlined
               color="primary"
-              :label="frappe._('Address')"
+              :label="__('Address')"
               v-model="deliverynote_doc.shipping_address_name"
               :items="addresses"
               item-title="address_title"
@@ -385,7 +385,7 @@
               color="primary"
               auto-grow
               rows="2"
-              :label="frappe._('Additional Notes')"
+              :label="__('Additional Notes')"
               v-model="deliverynote_doc.posa_notes"
             ></v-textarea>
           </v-col>
@@ -397,7 +397,7 @@
             <v-col cols="6">
               <v-text-field
                 v-model="deliverynote_doc.po_no"
-                :label="frappe._('Purchase Order')"
+                :label="__('Purchase Order')"
                 outlined
                 dense
                 background-color="white"
@@ -415,7 +415,7 @@
                 <template v-slot:activator="{ props }">
                   <v-text-field
                     v-model="deliverynote_doc.po_date"
-                    :label="frappe._('Purchase Order Date')"
+                    :label="__('Purchase Order Date')"
                     readonly
                     outlined
                     dense
@@ -461,7 +461,7 @@
               auto-select-first
               outlined
               color="primary"
-              :label="frappe._('Sales Person')"
+              :label="__('Sales Person')"
               v-model="sales_person"
               :items="sales_persons"
               item-title="sales_person_name"
@@ -540,7 +540,7 @@
                 dense
                 outlined
                 color="primary"
-                :label="frappe._('Mobile Number')"
+                :label="__('Mobile Number')"
                 background-color="white"
                 hide-details
                 v-model="deliverynote_doc.contact_mobile"
