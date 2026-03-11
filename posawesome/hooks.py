@@ -16,6 +16,7 @@ app_license = "GPLv3"
 
 # include js, css files in header of desk.html
 app_include_css = [
+    "/assets/posawesome/node_modules/vuetify/dist/vuetify.min.css",
     "/assets/posawesome/node_modules/@mdi/font/css/materialdesignicons.min.css",
 ]
 # app_include_js = "/assets/posawesome/js/posawesome.js"
