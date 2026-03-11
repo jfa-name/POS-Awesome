@@ -17,11 +17,14 @@ frappe.PosApp.posapp = class {
 
     make_body() {
         this.$el = this.$parent.find('.main-section');
+        const el = this.$el[0];
 
-        // Destroy previous Vue instance if it exists (prevents double mount)
-        if (this.vue) {
-            this.vue.unmount();
-            this.vue = null;
+        // Destroy any previously mounted Vue app on this DOM element.
+        // Vue 3 sets el.__vueApp__ automatically on mount.
+        // We check the DOM element (not `this`) because Frappe recreates
+        // the class instance on every page navigation, losing `this.vue`.
+        if (el && el.__vueApp__) {
+            el.__vueApp__.unmount();
         }
 
         const vuetify = createVuetify({
@@ -53,9 +56,11 @@ frappe.PosApp.posapp = class {
         });
 
         const app = createApp(Home);
-        app.config.globalProperties.__ = window.__;  // Register Frappe translation function for Vue 3 templates
+        // Register Frappe globals so Vue 3 templates can use __ and frappe._()
+        app.config.globalProperties.__ = window.__;
+        app.config.globalProperties.frappe = window.frappe;
         app.use(vuetify);
-        app.mount(this.$el[0]);
+        app.mount(el);
         this.vue = app;
     }
 
