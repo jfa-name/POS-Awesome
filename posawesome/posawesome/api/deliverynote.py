@@ -30,8 +30,11 @@ def before_submit(doc, method):
 def before_cancel(doc, method):
     update_coupon(doc, "cancelled")
 
+
 def add_loyalty_point(deliverynote_doc):
-    for offer in deliverynote_doc.posa_offers:
+    # Guard: posa_offers custom field may not exist on non-POS delivery notes
+    posa_offers = getattr(deliverynote_doc, 'posa_offers', None) or []
+    for offer in posa_offers:
         if offer.offer == "Loyalty Point":
             original_offer = frappe.get_doc("POS Offer", offer.offer_name)
             if original_offer.loyalty_points > 0:
@@ -55,17 +58,27 @@ def add_loyalty_point(deliverynote_doc):
                 )
                 doc.insert(ignore_permissions=True)
 
+
 def create_deliverynote(doc):
+    # Guard: all posa_* fields may not exist on non-POS delivery notes
+    pos_profile = getattr(doc, 'pos_profile', None)
+    posa_pos_opening_shift = getattr(doc, 'posa_pos_opening_shift', None)
+    posa_delivery_date = getattr(doc, 'posa_delivery_date', None)
+    posa_notes = getattr(doc, 'posa_notes', None)
+
+    if not pos_profile:
+        return
+
     if (
-        doc.posa_pos_opening_shift
-        and doc.pos_profile
-        and doc.posa_delivery_date
+        posa_pos_opening_shift
+        and pos_profile
+        and posa_delivery_date
         and not doc.update_stock
-        and frappe.get_value("POS Profile", doc.pos_profile, "posa_allow_deliverynote")
+        and frappe.get_value("POS Profile", pos_profile, "posa_allow_deliverynote")
     ):
         deliverynote_doc = make_deliverynote(doc.name)
         if deliverynote_doc:
-            deliverynote_doc.posa_notes = doc.posa_notes
+            deliverynote_doc.posa_notes = posa_notes
             deliverynote_doc.flags.ignore_permissions = True
             deliverynote_doc.flags.ignore_account_permission = True
             deliverynote_doc.save()
@@ -96,7 +109,8 @@ def make_deliverynote(source_name, target_doc=None, ignore_permissions=True):
     def update_item(obj, target, source_parent):
         target.stock_qty = flt(obj.qty) * flt(obj.conversion_factor)
         target.delivery_date = (
-            obj.posa_delivery_date or source_parent.posa_delivery_date
+            getattr(obj, 'posa_delivery_date', None)
+            or getattr(source_parent, 'posa_delivery_date', None)
         )
 
     doclist = get_mapped_doc(
@@ -132,7 +146,9 @@ def make_deliverynote(source_name, target_doc=None, ignore_permissions=True):
 
 
 def update_coupon(doc, transaction_type):
-    for coupon in doc.posa_coupons:
+    # Guard: posa_coupons custom field may not exist on non-POS delivery notes
+    posa_coupons = getattr(doc, 'posa_coupons', None) or []
+    for coupon in posa_coupons:
         if not coupon.applied:
             continue
         update_coupon_code_count(coupon.coupon, transaction_type)
@@ -150,24 +166,31 @@ def set_patient(doc):
 
 
 def auto_set_delivery_charges(doc):
-    if not doc.pos_profile:
+    # Guard: pos_profile and posa_* fields may not exist on non-POS delivery notes
+    pos_profile = getattr(doc, 'pos_profile', None)
+    if not pos_profile:
         return
+
     if not frappe.get_cached_value(
-        "POS Profile", doc.pos_profile, "posa_auto_set_delivery_charges"
+        "POS Profile", pos_profile, "posa_auto_set_delivery_charges"
     ):
         return
 
+    posa_delivery_charges = getattr(doc, 'posa_delivery_charges', None)
+    posa_delivery_charges_rate = getattr(doc, 'posa_delivery_charges_rate', None)
+    shipping_address_name = getattr(doc, 'shipping_address_name', None)
+
     delivery_charges = get_applicable_delivery_charges(
         doc.company,
-        doc.pos_profile,
+        pos_profile,
         doc.customer,
-        doc.shipping_address_name,
-        doc.posa_delivery_charges,
+        shipping_address_name,
+        posa_delivery_charges,
         restrict=True,
     )
 
-    if doc.posa_delivery_charges:
-        if doc.posa_delivery_charges_rate:
+    if posa_delivery_charges:
+        if posa_delivery_charges_rate:
             return
         else:
             if len(delivery_charges) > 0:
@@ -182,53 +205,61 @@ def auto_set_delivery_charges(doc):
 
 
 def calc_delivery_charges(doc):
-    if not doc.pos_profile:
+    # Guard: pos_profile and posa_* fields may not exist on non-POS delivery notes
+    pos_profile = getattr(doc, 'pos_profile', None)
+    if not pos_profile:
         return
+
+    posa_delivery_charges = getattr(doc, 'posa_delivery_charges', None)
 
     old_doc = None
     calculate_taxes_and_totals = False
     if not doc.is_new():
         old_doc = doc.get_doc_before_save()
-        if not doc.posa_delivery_charges and not old_doc.posa_delivery_charges:
+        old_posa_delivery_charges = getattr(old_doc, 'posa_delivery_charges', None)
+        if not posa_delivery_charges and not old_posa_delivery_charges:
             return
     else:
-        if not doc.posa_delivery_charges:
+        if not posa_delivery_charges:
             return
-    if not doc.posa_delivery_charges:
+
+    if not posa_delivery_charges:
         doc.posa_delivery_charges_rate = 0
 
     charges_doc = None
-    if doc.posa_delivery_charges:
+    if posa_delivery_charges:
         charges_doc = frappe.get_cached_doc(
-            "Delivery Charges", doc.posa_delivery_charges
+            "Delivery Charges", posa_delivery_charges
         )
         doc.posa_delivery_charges_rate = charges_doc.default_rate
         charges_profile = next(
-            (i for i in charges_doc.profiles if i.pos_profile == doc.pos_profile), None
+            (i for i in charges_doc.profiles if i.pos_profile == pos_profile), None
         )
         if charges_profile:
             doc.posa_delivery_charges_rate = charges_profile.rate
 
-    if old_doc and old_doc.posa_delivery_charges:
-        old_charges = next(
-            (
-                i
-                for i in doc.taxes
-                if i.charge_type == "Actual"
-                and i.description == old_doc.posa_delivery_charges
-            ),
-            None,
-        )
-        if old_charges:
-            doc.taxes.remove(old_charges)
-            calculate_taxes_and_totals = True
+    if old_doc:
+        old_posa_delivery_charges = getattr(old_doc, 'posa_delivery_charges', None)
+        if old_posa_delivery_charges:
+            old_charges = next(
+                (
+                    i
+                    for i in doc.taxes
+                    if i.charge_type == "Actual"
+                    and i.description == old_posa_delivery_charges
+                ),
+                None,
+            )
+            if old_charges:
+                doc.taxes.remove(old_charges)
+                calculate_taxes_and_totals = True
 
-    if doc.posa_delivery_charges:
+    if posa_delivery_charges:
         doc.append(
             "taxes",
             {
                 "charge_type": "Actual",
-                "description": doc.posa_delivery_charges,
+                "description": posa_delivery_charges,
                 "tax_amount": doc.posa_delivery_charges_rate,
                 "cost_center": charges_doc.cost_center,
                 "account_head": charges_doc.shipping_account,
