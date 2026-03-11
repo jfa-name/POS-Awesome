@@ -13,7 +13,7 @@
               <v-col cols="12">
                 <v-autocomplete
                   :items="companys"
-                  :label="frappe._('Company')"
+                  :label="__('Company')"
                   v-model="company"
                   required
                 ></v-autocomplete>
@@ -21,7 +21,7 @@
               <v-col cols="12">
                 <v-autocomplete
                   :items="pos_profiles"
-                  :label="frappe._('POS Profile')"
+                  :label="__('POS Profile')"
                   v-model="pos_profile"
                   required
                 ></v-autocomplete>
@@ -39,7 +39,7 @@
                     <v-text-field
                       v-model="props.item.amount"
                       :rules="[max25chars]"
-                      :label="frappe._('Edit')"
+                      :label="__('Edit')"
                       single-line
                       type="number"
                       density="compact"
