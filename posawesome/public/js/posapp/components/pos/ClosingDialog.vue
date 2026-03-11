@@ -22,8 +22,8 @@
                   <template v-slot:item.closing_amount="{ item }">
                     <v-text-field
                       v-model="item.closing_amount"
-                      :rules="[max25chars]"
-                      :label="frappe._('Edit')"
+                      :rules="[isValidAmount]"
+                      :label="__('Edit')"
                       single-line
                       type="number"
                       density="compact"
@@ -93,7 +93,7 @@ export default {
         sortable: true,
       },
     ],
-    max25chars: (v) => String(v).length <= 20 || 'Input too long!',
+    isValidAmount: (v) => (!isNaN(parseFloat(v)) && parseFloat(v) >= 0) || __('Please enter a valid amount'),
   }),
   watch: {},
 
