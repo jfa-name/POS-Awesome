@@ -272,14 +272,20 @@ def get_items(pos_profile, price_list=None, item_group="", search_value=""):
                                     )
                 serial_no_data = []
                 if search_serial_no:
+                    # WARNING: This Serial No query does NOT work correctly in ERPNext v16!
+                    # In v16, Serial Numbers are managed via "Serial and Batch Bundle"
+                    # TODO: Implement proper Serial and Batch Bundle handling
+                    # See: https://docs.erpnext.com/docs/v16/user/manual/en/stock/serial-and-batch-bundle
+                    # For now, this will return empty or incorrect results
                     serial_no_data = frappe.get_all(
                         "Serial No",
                         filters={
                             "item_code": item_code,
                             "status": "Active",
-                            "warehouse": warehouse,
+                            # "warehouse": warehouse,  # This field doesn't exist in v16 Serial No
                         },
                         fields=["name as serial_no"],
+                        limit=100  # Limit results since we can't filter by warehouse
                     )
                 item_stock_qty = 0
                 if pos_profile.get("posa_display_items_in_stock") or use_limit_search:
@@ -1059,14 +1065,19 @@ def get_items_details(pos_profile, items_data):
                     fields=["uom", "conversion_factor"],
                 )
 
+                # WARNING: This Serial No query does NOT work correctly in ERPNext v16!
+                # In v16, Serial Numbers are managed via "Serial and Batch Bundle"
+                # TODO: Implement proper Serial and Batch Bundle handling
+                # See: https://docs.erpnext.com/docs/v16/user/manual/en/stock/serial-and-batch-bundle
                 serial_no_data = frappe.get_all(
                     "Serial No",
                     filters={
                         "item_code": item_code,
                         "status": "Active",
-                        "warehouse": warehouse,
+                        # "warehouse": warehouse,  # This field doesn't exist in v16 Serial No
                     },
                     fields=["name as serial_no"],
+                    limit=100  # Limit results since we can't filter by warehouse
                 )
 
                 batch_no_data = []
@@ -1158,20 +1169,28 @@ def get_item_detail(item, doc=None, warehouse=None, price_list=None):
 
 
 def get_stock_availability(item_code, warehouse):
-    actual_qty = (
-        frappe.db.get_value(
-            "Stock Ledger Entry",
-            filters={
-                "item_code": item_code,
-                "warehouse": warehouse,
-                "is_cancelled": 0,
-            },
-            fieldname="qty_after_transaction",
-            order_by="posting_date desc, posting_time desc, creation desc",
+    """Get available stock quantity for item in warehouse.
+    
+    Uses official ERPNext v16 API instead of direct Stock Ledger queries.
+    
+    Args:
+        item_code (str): Item Code
+        warehouse (str): Warehouse name
+    
+    Returns:
+        float: Available quantity
+    """
+    try:
+        # Use official ERPNext API for accurate stock balance
+        from erpnext.stock.utils import get_latest_stock_qty
+        actual_qty = get_latest_stock_qty(item_code, warehouse) or 0.0
+        return actual_qty
+    except Exception as e:
+        frappe.log_error(
+            message=f"Error getting stock for {item_code} in {warehouse}: {str(e)}",
+            title="POS Stock Availability Error"
         )
-        or 0.0
-    )
-    return actual_qty
+        return 0.0
 
 
 @frappe.whitelist()
@@ -1381,13 +1400,32 @@ def search_invoices_for_return(invoice_name, company):
 
 
 def get_version():
-    branch_name = get_app_branch("erpnext")
-    if "12" in branch_name:
-        return 12
-    elif "13" in branch_name:
-        return 13
-    else:
-        return 13
+    """Get ERPNext major version number.
+    
+    Returns:
+        int: Major version number (e.g., 16 for v16.x.x)
+    """
+    try:
+        import erpnext
+        version_string = erpnext.__version__
+        major_version = int(version_string.split('.')[0])
+        return major_version
+    except Exception:
+        # Fallback to branch detection if version import fails
+        branch_name = get_app_branch("erpnext")
+        if "12" in branch_name:
+            return 12
+        elif "13" in branch_name:
+            return 13
+        elif "14" in branch_name:
+            return 14
+        elif "15" in branch_name:
+            return 15
+        elif "16" in branch_name:
+            return 16
+        else:
+            # Default to current stable if unknown
+            return 16
 
 
 def get_app_branch(app):
