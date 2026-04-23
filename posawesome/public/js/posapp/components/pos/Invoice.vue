@@ -808,6 +808,7 @@ export default {
       selcted_delivery_charges: {},
       invoice_posting_date: false,
       posting_date: frappe.datetime.nowdate(),
+      dialog_data: [],  // Fix for v16: Initialize to prevent Vue warning
       items_headers: [
         {
           title: __("Name"),
@@ -910,6 +911,15 @@ export default {
     },
 
     add_item(item) {
+      // Fix for v16: Validate item has item_code
+      if (!item || !item.item_code) {
+        evntBus.$emit('show_mesage', {
+          text: __('Error: Cannot add item without item code'),
+          color: 'error',
+        });
+        return;
+      }
+      
       if (!item.uom) {
         item.uom = item.stock_uom;
       }
@@ -988,6 +998,15 @@ export default {
 
     get_new_item(item) {
       const new_item = { ...item };
+      
+      // Fix for v16: Ensure item_code is preserved
+      if (!new_item.item_code && item.item_code) {
+        new_item.item_code = item.item_code;
+      }
+      if (!new_item.item_name && item.item_name) {
+        new_item.item_name = item.item_name;
+      }
+      
       if (!item.qty) {
         item.qty = 1;
       }
@@ -1476,6 +1495,16 @@ export default {
 
     update_item_detail(item) {
       const vm = this;
+      
+      // Fix for v16: Validate item_code before making API call
+      if (!item || !item.item_code) {
+        evntBus.$emit('show_mesage', {
+          text: __('Error: Cannot update item without item code'),
+          color: 'error',
+        });
+        return;
+      }
+      
       frappe.call({
         method: "posawesome.posawesome.api.posapp.get_item_detail",
         args: {
@@ -2743,9 +2772,6 @@ export default {
       } else {
         this.additional_discount_percentage = 0;
       }
-    },
-    dialog_data() {
-      // listButtonLabel is computed, no action needed here
     },
   },
 };

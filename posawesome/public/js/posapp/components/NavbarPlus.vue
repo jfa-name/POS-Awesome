@@ -132,7 +132,7 @@
             v-for="item in items"
             :key="item.text"
             :active="selectedOption === item.text"
-            active-color="white"
+            color="white"
             @click="changePage(item.text)"
             :prepend-icon="item.icon"
           >

@@ -45,9 +45,10 @@ def get_opening_dialog_data():
     for i in data["pos_profiles_data"]:
         pos_profiles_list.append(i.name)
 
-    payment_method_table = (
-        "POS Payment Method" if get_version() == 13 else "Sales Invoice Payment"
-    )
+    # Fix for v16: POS Payment Method is the correct table for v13+
+    # The table name did NOT change to "Sales Invoice Payment" in later versions
+    payment_method_table = "POS Payment Method"
+    
     data["payments_method"] = frappe.get_list(
         payment_method_table,
         filters={"parent": ["in", pos_profiles_list]},
@@ -400,10 +401,13 @@ def get_customer_group_condition(pos_profile):
     cond = "disabled = 0"
     customer_groups = get_customer_groups(pos_profile)
     if customer_groups:
-        cond = " customer_group in (%s)" % (
+        # Fix for v16: Add customer_group filter AND keep disabled check
+        group_condition = " customer_group in (%s)" % (
             ", ".join(["%s"] * len(customer_groups)))
-
-    return cond % tuple(customer_groups)
+        group_condition = group_condition % tuple(customer_groups)
+        cond = f"{cond} AND {group_condition}"
+    
+    return cond
 
 
 @frappe.whitelist()
@@ -1054,10 +1058,43 @@ def get_items_details(pos_profile, items_data):
         if len(items_data) > 0:
             for item in items_data:
                 item_code = item.get("item_code")
+                
+                # Fix for v16: Validate item_code exists
+                if not item_code:
+                    frappe.log_error(
+                        title="POS Awesome - Missing item_code",
+                        message=f"Item data without item_code: {json.dumps(item)}"
+                    )
+                    # Return item with safe defaults to avoid frontend errors
+                    row = {}
+                    row.update(item)
+                    row.update({
+                        "item_uoms": [],
+                        "serial_no_data": [],
+                        "batch_no_data": [],
+                        "actual_qty": 0,
+                        "has_batch_no": 0,
+                        "has_serial_no": 0,
+                    })
+                    result.append(row)
+                    continue  # Skip processing for this item
+                
                 item_stock_qty = get_stock_availability(item_code, warehouse)
-                has_batch_no, has_serial_no = frappe.get_value(
-                    "Item", item_code, ["has_batch_no", "has_serial_no"]
+                
+                # Fix for v16: Handle case when item doesn't exist
+                item_data = frappe.get_value(
+                    "Item", item_code, ["has_batch_no", "has_serial_no"], as_dict=False
                 )
+                
+                if item_data:
+                    has_batch_no, has_serial_no = item_data
+                else:
+                    # Item doesn't exist, use safe defaults
+                    frappe.log_error(
+                        title="POS Awesome - Item not found",
+                        message=f"Item '{item_code}' not found in database"
+                    )
+                    has_batch_no, has_serial_no = 0, 0
 
                 uoms = frappe.get_all(
                     "UOM Conversion Detail",
@@ -1132,6 +1169,15 @@ def get_item_detail(item, doc=None, warehouse=None, price_list=None):
     item = json.loads(item)
     today = nowdate()
     item_code = item.get("item_code")
+    
+    # Fix for v16: Validate item_code exists
+    if not item_code:
+        frappe.log_error(
+            title="POS Awesome - get_item_detail with empty item_code",
+            message=f"Received item without item_code: {json.dumps(item)}"
+        )
+        frappe.throw("Item Code is required to get item details")
+    
     batch_no_data = []
     if warehouse and item.get("has_batch_no"):
         batch_list = get_batch_qty(warehouse=warehouse, item_code=item_code)

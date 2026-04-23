@@ -104,7 +104,7 @@
                 class="elevation-1"
                 :items-per-page="itemsPerPage"
                 hide-default-footer
-                @click:row="(_, { item }) => add_item(item.raw)"
+                @click:row="(event, { item }) => add_item(item)"
               >
                 <template v-slot:item.rate="{ item }">
                   <span class="primary--text"
@@ -332,6 +332,17 @@ export default {
         if (!item.qty || item.qty === 1) {
           item.qty = Math.abs(this.qty);
         }
+        
+        // Fix for v16: Validate item before emitting
+        if (!item.item_code) {
+          console.error('POS Awesome - Attempting to add item without item_code:', item);
+          evntBus.$emit('show_mesage', {
+            text: __('Error: Item data is incomplete'),
+            color: 'error',
+          });
+          return;
+        }
+        
         evntBus.$emit('add_item', item);
         this.qty = 1;
       }
@@ -452,13 +463,28 @@ export default {
         callback: function (r) {
           if (r.message) {
             items.forEach((item) => {
+              // Fix for v16: Validate item has item_code before searching
+              if (!item.item_code) {
+                return; // Skip this item
+              }
+              
               const updated_item = r.message.find(
                 (element) => element.item_code == item.item_code
               );
-              item.actual_qty = updated_item.actual_qty;
-              item.serial_no_data = updated_item.serial_no_data;
-              item.batch_no_data = updated_item.batch_no_data;
-              item.item_uoms = updated_item.item_uoms;
+              
+              // Fix for v16: Only update if we found the item in response
+              if (updated_item) {
+                item.actual_qty = updated_item.actual_qty;
+                item.serial_no_data = updated_item.serial_no_data;
+                item.batch_no_data = updated_item.batch_no_data;
+                item.item_uoms = updated_item.item_uoms;
+              } else {
+                // Set safe defaults
+                item.actual_qty = 0;
+                item.serial_no_data = [];
+                item.batch_no_data = [];
+                item.item_uoms = [];
+              }
             });
           }
         },
