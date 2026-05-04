@@ -289,12 +289,12 @@
                     color="primary"
                     background-color="white"
                     hide-details
-                    :value="formtCurrency(method.amount)"
-                    @change="
-                      setFormatedCurrency(method, 'amount', null, true, $event)
-                    "
+                    v-model.number="method.amount"
                     payments_methods
                     flat
+                    type="number"
+                    step="0.01"
+                    min="0"
                     :prefix="currencySymbol(pos_profile.currency)"
                   ></v-text-field
                 ></v-col>

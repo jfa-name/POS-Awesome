@@ -40,7 +40,8 @@ export default {
                 if (no_negative && value < 0) {
                     value = value * -1;
                 }
-                value = this.formtCurrency($event, precision);
+                // FIX: Store numeric value, not formatted string
+                // The template will handle formatting with formtCurrency()
             } catch (e) {
                 console.error(e);
                 value = 0;
@@ -66,7 +67,8 @@ export default {
                 } else if (no_negative && value < 0) {
                     value = value * -1;
                 }
-                value = this.formtFloat($event, precision);
+                // FIX: Store numeric value, not formatted string
+                // The template will handle formatting with formtFloat()
             } catch (e) {
                 console.error(e);
                 value = 0;
