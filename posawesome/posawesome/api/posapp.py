@@ -7,6 +7,7 @@ import json
 import frappe
 from frappe.utils import nowdate, flt, cstr
 from frappe import _
+from frappe.utils.nestedset import get_root_of
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
 from erpnext.stock.get_item_details import get_item_details
 from erpnext.accounts.doctype.pos_profile.pos_profile import get_item_groups
@@ -1276,11 +1277,13 @@ def create_customer(
             if customer_group:
                 customer.customer_group = customer_group
             else:
-                customer.customer_group = "All Customer Groups"
+                # FIX: Use get_root_of() instead of hardcoding "All Customer Groups"
+                customer.customer_group = get_root_of("Customer Group")
             if territory:
                 customer.territory = territory
             else:
-                customer.territory = "All Territories"
+                # FIX: Use get_root_of() instead of hardcoding "All Territories"
+                customer.territory = get_root_of("Territory")
             customer.save()
             return customer
         else:
