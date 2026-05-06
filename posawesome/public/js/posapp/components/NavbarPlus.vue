@@ -1,6 +1,6 @@
 <template>
   <nav>
-    <v-app-bar app height="40" class="elevation-2">
+    <v-app-bar app height="40" :class="['elevation-2', navbarClass]">
       <v-app-bar-nav-icon
         @click.stop="drawer = !drawer"
         class="text-grey"
@@ -20,6 +20,13 @@
         <span class="font-weight-light">{{ pos_profile.company }}</span>
         
       </v-toolbar-title>
+      <span 
+        v-if="currentPage === 'POS' || currentPage === 'POD'"
+        class="ml-4 text-white font-weight-medium"
+        style="font-size: 16px; letter-spacing: 0.5px;"
+      >
+        {{ currentPage === 'POS' ? 'FACTURA DE VENTA' : 'NOTA DE ENTREGA' }}
+      </span>
       <div class="items px-2 py-1" style="display: flex; align-items: center;">
         <CustomerPlus
           @customer-selected="onCustomerSelected"
@@ -100,6 +107,10 @@
                 >
                   <v-list-item-title>{{ __('Payments') }}</v-list-item-title>
                 </v-list-item>
+                <v-divider class="my-0"></v-divider>
+                <v-list-item @click="go_stock_entry" prepend-icon="mdi-swap-horizontal">
+                  <v-list-item-title>{{ __('Stock Entry') }}</v-list-item-title>
+                </v-list-item>
             </v-list>
           </v-card>
         </v-menu>
@@ -162,6 +173,22 @@ import moment from "moment";
 export default {
   components: { CustomerPlus },
   // components: {MyPopup},
+  props: {
+    currentPage: {
+      type: String,
+      default: 'POS'
+    }
+  },
+  computed: {
+    navbarClass() {
+      if (this.currentPage === 'POS') {
+        return 'navbar-sales-invoice';
+      } else if (this.currentPage === 'POD') {
+        return 'navbar-delivery-note';
+      }
+      return '';
+    }
+  },
   data() {
     return {
       selectedOption: '',
@@ -212,6 +239,9 @@ export default {
         '_blank'
       );
       win.focus();
+    },
+    go_stock_entry() {
+      window.location.href = '/desk/stock-entry/view/list';
     },
     close_shift_dialog() {
       evntBus.$emit('open_closing_dialog');
@@ -392,5 +422,33 @@ export default {
 <style scoped>
 .margen-top {
   margin-top: 0px;
+}
+</style>
+
+<style>
+/* Navbar en modo Factura de Venta - Azul */
+.navbar-sales-invoice {
+  background-color: #2196F3 !important; /* Azul */
+}
+
+.navbar-sales-invoice .v-toolbar-title {
+  color: white !important;
+}
+
+.navbar-sales-invoice .v-btn {
+  color: white !important;
+}
+
+/* Navbar en modo Nota de Entrega - Amarillo */
+.navbar-delivery-note {
+  background-color: #FDD835 !important; /* Amarillo */
+}
+
+.navbar-delivery-note .v-toolbar-title {
+  color: black !important;
+}
+
+.navbar-delivery-note .v-btn {
+  color: black !important;
 }
 </style>
