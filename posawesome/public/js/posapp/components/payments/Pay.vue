@@ -299,6 +299,7 @@
                     step="0.01"
                     min="0"
                     :prefix="currencySymbol(pos_profile.currency)"
+                    @focus="auto_fill_payment_method(method)"
                   ></v-text-field
                 ></v-col>
               </v-row>
@@ -646,6 +647,24 @@ export default {
           row_id: method.name,
         });
       });
+    },
+    auto_fill_payment_method(method) {
+      // Al hacer focus sobre un modo de pago, autocompletar con el importe
+      // pendiente (Total Invoices - pagos previos seleccionados - cantidades
+      // ya asignadas en otros modos de pago). Solo si el campo está vacío/0.
+      if (flt(method.amount) > 0) return;
+      const assigned_other_methods = this.payment_methods.reduce(
+        (acc, cur) => (cur === method ? acc : acc + flt(cur.amount)),
+        0
+      );
+      const pending =
+        flt(this.total_selected_invoices) -
+        flt(this.total_selected_payments) -
+        flt(this.total_selected_mpesa_payments) -
+        assigned_other_methods;
+      if (pending > 0) {
+        method.amount = flt(pending, 2);
+      }
     },
     clear_all(with_customer_info = true) {
       this.customer_name = "";
