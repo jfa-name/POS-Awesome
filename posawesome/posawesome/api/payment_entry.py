@@ -348,6 +348,81 @@ def process_pos_payment(payload):
     )
     today = nowdate()
 
+    # ------------------------------------------------------------------
+    # PRE-VALIDACIÓN (defensiva): comprobar que las facturas seleccionadas
+    # están realmente pendientes según el libro de pagos (PLE/GL Entry).
+    # Sin este chequeo, si una factura tiene `outstanding_amount` cacheado
+    # pero PLE la considera saldada, ERPNext `validate_allocation()` revienta
+    # con `TypeError: float - NoneType` y DEJA HUÉRFANOS los Payment Entries
+    # ya enviados (submit=1 hace commit interno).
+    # Por eso se valida ANTES de crear nada.
+    # ------------------------------------------------------------------
+    if data.get("selected_invoices"):
+        # Normalizar selected_invoices: a veces el frontend manda solo nombres
+        _normalized_invoices = []
+        for _inv in data.selected_invoices:
+            if isinstance(_inv, str):
+                _inv_data = frappe.db.get_value(
+                    "Sales Invoice",
+                    _inv,
+                    ["name", "posting_date", "grand_total",
+                        "outstanding_amount", "currency"],
+                    as_dict=True,
+                )
+                if _inv_data:
+                    _normalized_invoices.append(_inv_data)
+            elif _inv:
+                _normalized_invoices.append(_inv)
+        data.selected_invoices = _normalized_invoices
+
+        if data.selected_invoices:
+            _preview_recon = frappe.new_doc("Payment Reconciliation")
+            _preview_recon.party_type = "Customer"
+            _preview_recon.party = customer
+            _preview_recon.company = company
+            _preview_recon.receivable_payable_account = get_party_account(
+                "Customer", customer, company
+            )
+            try:
+                _preview_recon.get_unreconciled_entries()
+            except Exception:
+                # Si la pre-consulta falla por cualquier motivo, dejamos
+                # que el flujo continúe y rompa más adelante con su error
+                # original; no queremos enmascarar bugs distintos.
+                _preview_recon = None
+
+            if _preview_recon is not None:
+                _valid_invoice_names = {
+                    inv.invoice_number
+                    for inv in (_preview_recon.get("invoices") or [])
+                }
+                _skipped = [
+                    inv.get("name")
+                    for inv in data.selected_invoices
+                    if inv.get("name") not in _valid_invoice_names
+                ]
+                if _skipped:
+                    frappe.log_error(
+                        message=(
+                            "Facturas seleccionadas que NO aparecen como pendientes "
+                            "en PLE/GL para el cliente {0}: {1}.\n"
+                            "Probablemente su `outstanding_amount` está desactualizado. "
+                            "Ejecute baygroup.controllers.refresh_si_outstanding.apply "
+                            "para reconciliar el cacheado con GL."
+                        ).format(customer, _skipped),
+                        title="POS Reconcile Skipped Invoices",
+                    )
+                    frappe.throw(
+                        _(
+                            "Las siguientes facturas no aparecen como pendientes "
+                            "según el libro de pagos (PLE/GL): {0}.\n"
+                            "Su importe pendiente está desactualizado. "
+                            "No se ha creado ningún cobro. "
+                            "Avise al administrador para ejecutar el script "
+                            "refresh_si_outstanding antes de reintentar."
+                        ).format(", ".join(_skipped))
+                    )
+
     new_payments_entry = []
     all_payments_entry = []
     errors = []
