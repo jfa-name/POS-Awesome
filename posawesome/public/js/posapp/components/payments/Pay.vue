@@ -59,6 +59,7 @@
               :headers="invoices_headers"
               :items="outstanding_invoices"
               item-value="name"
+              return-object
               class="elevation-1 mt-0"
               show-select
               v-model="selected_invoices"
@@ -110,6 +111,7 @@
               :headers="unallocated_payments_headers"
               :items="unallocated_payments"
               item-value="name"
+              return-object
               class="elevation-1 mt-0"
               show-select
               v-model="selected_payments"
@@ -188,6 +190,7 @@
               :headers="mpesa_payment_headers"
               :items="mpesa_payments"
               item-value="name"
+              return-object
               class="elevation-1 mt-0"
               show-select
               v-model="selected_mpesa_payments"
@@ -222,7 +225,7 @@
                   color="primary"
                   background-color="white"
                   hide-details
-                  :value="formtCurrency(total_selected_invoices)"
+                  :model-value="formtCurrency(total_selected_invoices)"
                   total_selected_invoices
                   readonly
                   flat
@@ -242,7 +245,7 @@
                   color="primary"
                   background-color="white"
                   hide-details
-                  :value="formtCurrency(total_selected_payments)"
+                  :model-value="formtCurrency(total_selected_payments)"
                   total_selected_payments
                   readonly
                   flat
@@ -262,7 +265,7 @@
                   color="primary"
                   background-color="white"
                   hide-details
-                  :value="formtCurrency(total_selected_mpesa_payments)"
+                  :model-value="formtCurrency(total_selected_mpesa_payments)"
                   total_selected_mpesa_payments
                   readonly
                   flat
@@ -313,7 +316,7 @@
                   color="primary"
                   background-color="white"
                   hide-details
-                  :value="formtCurrency(total_of_diff)"
+                  :model-value="formtCurrency(total_of_diff)"
                   total_of_diff
                   flat
                   readonly
