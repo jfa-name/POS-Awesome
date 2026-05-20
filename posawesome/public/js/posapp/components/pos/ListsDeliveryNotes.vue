@@ -17,10 +17,11 @@
                 <v-data-table
                   :headers="headers"
                   :items="dialog_data"
-                  item-key="name"
+                  item-value="name"
                   class="elevation-1"
                   select-strategy="single"
                   show-select
+                  return-object
                   v-model="selected"
                 >
                   <template v-slot:item.posting_time="{ item }">
