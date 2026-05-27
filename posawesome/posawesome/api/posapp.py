@@ -1058,6 +1058,13 @@ def get_items_details(pos_profile, items_data):
 
         if len(items_data) > 0:
             for item in items_data:
+                # Fix for v16: Skip null/empty entries defensively
+                if not item or not isinstance(item, dict):
+                    frappe.log_error(
+                        title="POS Awesome - Invalid item entry",
+                        message=f"Skipping non-dict item entry: {item!r}"
+                    )
+                    continue
                 item_code = item.get("item_code")
                 
                 # Fix for v16: Validate item_code exists

@@ -134,7 +134,7 @@
           :single-expand="singleExpand"
           v-model:expanded="expanded"
           show-expand
-          item-key="posa_row_id"
+          item-value="posa_row_id"
           class="elevation-1"
           :items-per-page="itemsPerPage"
           hide-default-footer
@@ -842,8 +842,9 @@ export default {
       if (index >= 0) {
         this.items.splice(index, 1);
       }
+      // Fix for v16 (Vuetify 3): expanded contains keys (posa_row_id), not objects
       const idx = this.expanded.findIndex(
-        (el) => el.posa_row_id == item.posa_row_id
+        (key) => key == item.posa_row_id
       );
       if (idx >= 0) {
         this.expanded.splice(idx, 1);
@@ -976,7 +977,8 @@ export default {
         (!this.pos_profile.posa_auto_set_batch && new_item.has_batch_no) ||
         new_item.has_serial_no
       ) {
-        this.expanded.push(new_item);
+        // Fix for v16 (Vuetify 3): v-model:expanded holds item keys, not objects
+        this.expanded.push(new_item.posa_row_id);
       }
       return new_item;
     },
@@ -1387,19 +1389,25 @@ export default {
       }
       const vm = this;
       if (!vm.pos_profile) return;
+      // Fix for v16: Filter out null/invalid items before sending to backend
+      const valid_items = (items || []).filter((it) => it && it.item_code);
+      if (!valid_items.length) {
+        return;
+      }
       frappe.call({
         method: "posawesome.posawesome.api.posapp.get_items_details",
         async: false,
         args: {
           pos_profile: vm.pos_profile,
-          items_data: items,
+          items_data: valid_items,
         },
         callback: function (r) {
           if (r.message) {
-            items.forEach((item) => {
+            valid_items.forEach((item) => {
               const updated_item = r.message.find(
                 (element) => element.posa_row_id == item.posa_row_id
               );
+              if (!updated_item) return;
               item.actual_qty = updated_item.actual_qty;
               item.serial_no_data = updated_item.serial_no_data;
               item.batch_no_data = updated_item.batch_no_data;
@@ -1414,6 +1422,14 @@ export default {
 
     update_item_detail(item) {
       const vm = this;
+      // Fix for v16: Validate item_code before making API call
+      if (!item || !item.item_code) {
+        evntBus.$emit('show_mesage', {
+          text: __('Error: Cannot update item without item code'),
+          color: 'error',
+        });
+        return;
+      }
       frappe.call({
         method: "posawesome.posawesome.api.posapp.get_item_detail",
         args: {
@@ -1742,7 +1758,9 @@ export default {
       if (e.key === "a" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         this.expanded = [];
-        this.expanded.push(this.items[0]);
+        if (this.items[0]) {
+          this.expanded.push(this.items[0].posa_row_id);
+        }
       }
     },
 
@@ -2340,7 +2358,7 @@ export default {
         (!this.pos_profile.posa_auto_set_batch && new_item.has_batch_no) ||
         new_item.has_serial_no
       ) {
-        this.expanded.push(new_item);
+        this.expanded.push(new_item.posa_row_id);
       }
       this.update_item_detail(new_item);
       return new_item;
@@ -2655,10 +2673,28 @@ export default {
       evntBus.$emit("set_customer_info_to_edit", this.customer_info);
     },
     expanded(data_value) {
-      this.update_items_details(data_value);
-      if (data_value.length > 0) {
-        this.update_item_detail(data_value[0]);
+      // Fix for v16 (Vuetify 3): v-model:expanded now holds item keys (posa_row_id strings),
+      // not item objects. And :single-expand prop was removed, so we enforce it manually.
+      if (!data_value || data_value.length === 0) return;
+      // Keep only the last expanded row (single-expand behaviour)
+      if (this.singleExpand && data_value.length > 1) {
+        const last = data_value[data_value.length - 1];
+        this.$nextTick(() => {
+          this.expanded = [last];
+        });
+        return;
       }
+      // Resolve keys back to item objects from this.items
+      const resolved = data_value
+        .map((key) =>
+          typeof key === "object" && key !== null
+            ? key
+            : this.items.find((it) => it && it.posa_row_id == key)
+        )
+        .filter((it) => it && it.item_code);
+      if (resolved.length === 0) return;
+      this.update_items_details(resolved);
+      this.update_item_detail(resolved[0]);
     },
     discount_percentage_offer_name() {
       evntBus.$emit("update_discount_percentage_offer_name", {
