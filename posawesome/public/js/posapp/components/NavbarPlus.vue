@@ -241,7 +241,7 @@ export default {
       win.focus();
     },
     go_stock_entry() {
-      window.location.href = '/desk/stock-entry/view/list';
+      window.location.href = '/desk/entrada-rapida';
     },
     close_shift_dialog() {
       evntBus.$emit('open_closing_dialog');
