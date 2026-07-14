@@ -147,8 +147,7 @@ function add_to_pos_payments (d, frm) {
 		posting_date: d.posting_date,
 		paid_amount: d.paid_amount,
 		customer: d.party,
-		mode_of_payment: d.mode_of_payment,
-		references: d.references || []
+		mode_of_payment: d.mode_of_payment
 	}, function(child) {
 		// Callback executed after child record is added
 		get_sales_invoice_status(d.sales_invoice, function(status) {
