@@ -93,6 +93,22 @@ def get_cashiers(doctype, txt, searchfield, start, page_len, filters):
 
 
 @frappe.whitelist()
+def get_pos_profiles_for_user(doctype, txt, searchfield, start, page_len, filters):
+    """
+    Obtener POS Profiles sin filtrar.
+    No usamos filtros aquí para evitar errores de permiso.
+    Los usuarios deberían ver todos los POS Profile que tienen en applicable_for_users.
+    """
+    profiles = frappe.get_list(
+        "POS Profile",
+        fields=["name"],
+        filters={"disabled": 0},
+        order_by="name"
+    )
+    return [p['name'] for p in profiles]
+
+
+@frappe.whitelist()
 def get_pos_invoices(pos_opening_shift):
     submit_printed_invoices(pos_opening_shift)
     data = frappe.db.sql(

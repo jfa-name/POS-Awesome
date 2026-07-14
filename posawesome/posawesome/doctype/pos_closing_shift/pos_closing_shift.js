@@ -5,7 +5,8 @@ frappe.ui.form.on('POS Closing Shift', {
 	onload: function (frm) {
 		frm.set_query("pos_profile", function (doc) {
 			return {
-				filters: { 'user': doc.user }
+				query: "posawesome.posawesome.doctype.pos_closing_shift.pos_closing_shift.get_pos_profiles_for_user",
+				// NO pasar filters aquí - la custom query obtiene el usuario del contexto
 			};
 		});
 
@@ -26,12 +27,31 @@ frappe.ui.form.on('POS Closing Shift', {
 
 	pos_opening_shift (frm) {
 		if (frm.doc.pos_opening_shift && frm.doc.user) {
-			reset_values(frm);
-			frappe.run_serially([
-				() => frm.trigger("set_opening_amounts"),
-				() => frm.trigger("get_pos_invoices"),
-				() => frm.trigger("get_pos_payments")
-			]);
+			// Obtener el POS Opening Shift para acceder a pos_profile y company
+			frappe.db.get_doc("POS Opening Shift", frm.doc.pos_opening_shift)
+				.then((opening_shift_doc) => {
+					// Establecer pos_profile desde POS Opening Shift
+					frm.set_value({
+						"pos_profile": opening_shift_doc.pos_profile,
+						"period_start_date": opening_shift_doc.period_start_date
+					}).then(() => {
+						// Ahora obtener company desde POS Profile
+						frappe.db.get_value('POS Profile', opening_shift_doc.pos_profile, 'company')
+							.then((r) => {
+								// Establecer company explícitamente
+								frm.set_value("company", r.message.company)
+									.then(() => {
+										// Proceder con reset_values y otros triggers
+										reset_values(frm);
+										frappe.run_serially([
+											() => frm.trigger("set_opening_amounts"),
+											() => frm.trigger("get_pos_invoices"),
+											() => frm.trigger("get_pos_payments")
+										]);
+									});
+							});
+					});
+				});
 		}
 	},
 
