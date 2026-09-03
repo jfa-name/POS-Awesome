@@ -335,13 +335,13 @@ def get_items(pos_profile, price_list=None, item_group="", search_value=""):
 
 
 def get_item_group_condition(pos_profile):
-    cond = " and 1=1"
+    # erpnext v16.34+ returns raw (unescaped) group names, so escape them here.
     item_groups = get_item_groups(pos_profile)
-    if item_groups:
-        cond = " and item_group in (%s)" % (
-            ", ".join(["%s"] * len(item_groups)))
+    if not item_groups:
+        return " and 1=1"
 
-    return cond % tuple(item_groups)
+    escaped = ", ".join(frappe.db.escape(g) for g in item_groups)
+    return f" and item_group in ({escaped})"
 
 
 def get_root_of(doctype):
