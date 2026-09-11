@@ -480,15 +480,16 @@ def process_pos_payment(payload):
                 errors.append(str(e))
 
     # DEBUG: Log what we received from frontend
-    frappe.log_error(
-        f"Reconciliation check:\n"
-        f"selected_invoices: {data.get('selected_invoices', 'NOT PROVIDED')}\n"
-        f"total_selected_invoices: {data.get('total_selected_invoices', 'NOT PROVIDED')}\n"
-        f"len(selected_invoices): {len(data.get('selected_invoices', []))}\n"
-        f"all_payments_entry count: {len(all_payments_entry)}\n"
-        f"new_payments_entry count: {len(new_payments_entry)}",
-        "POS Reconciliation Pre-Check"
-    )
+    # COMMENTED OUT: Este log de debug ya no es relevante - fue solucionado en producción
+    # frappe.log_error(
+    #     f"Reconciliation check:\n"
+    #     f"selected_invoices: {data.get('selected_invoices', 'NOT PROVIDED')}\n"
+    #     f"total_selected_invoices: {data.get('total_selected_invoices', 'NOT PROVIDED')}\n"
+    #     f"len(selected_invoices): {len(data.get('selected_invoices', []))}\n"
+    #     f"all_payments_entry count: {len(all_payments_entry)}\n"
+    #     f"new_payments_entry count: {len(new_payments_entry)}",
+    #     "POS Reconciliation Pre-Check"
+    # )
 
     # then then reconcile the new payments and the unallocated payments with the outstanding invoices
     # FIX: Don't validate total_selected_invoices because v-data-table returns strings, not objects
@@ -515,10 +516,11 @@ def process_pos_payment(payload):
         data.selected_invoices = processed_invoices
         
         # DEBUG: Log conversion results
-        frappe.log_error(
-            f"Converted {len(processed_invoices)} invoices: {[inv.get('name') for inv in processed_invoices]}",
-            "POS Payment Reconciliation Debug"
-        )
+        # COMMENTED OUT: Este log de debug ya no es relevante - fue solucionado en producción
+        # frappe.log_error(
+        #     f"Converted {len(processed_invoices)} invoices: {[inv.get('name') for inv in processed_invoices]}",
+        #     "POS Payment Reconciliation Debug"
+        # )
     
     # FIX: Don't validate total_selected_invoices (frontend sends 0)
     if len(data.selected_invoices) > 0:
@@ -582,13 +584,14 @@ def process_pos_payment(payload):
                 )
             
             # DEBUG: Log reconciliation data
-            frappe.log_error(
-                f"Reconciliation attempt:\n"
-                f"Invoices ({len(args['invoices'])}): {[inv['invoice_number'] for inv in args['invoices']]}\n"
-                f"Payments ({len(args['payments'])}): {[pay['reference_name'] for pay in args['payments']]}\n"
-                f"Payment amounts: {[pay['unallocated_amount'] for pay in args['payments']]}",
-                "POS Payment Reconciliation Debug"
-            )
+            # COMMENTED OUT: Este log de debug ya no es relevante - fue solucionado en producción
+            # frappe.log_error(
+            #     f"Reconciliation attempt:\n"
+            #     f"Invoices ({len(args['invoices'])}): {[inv['invoice_number'] for inv in args['invoices']]}\n"
+            #     f"Payments ({len(args['payments'])}): {[pay['reference_name'] for pay in args['payments']]}\n"
+            #     f"Payment amounts: {[pay['unallocated_amount'] for pay in args['payments']]}",
+            #     "POS Payment Reconciliation Debug"
+            # )
             
             reconcile_doc.allocate_entries(args)
             reconcile_doc.reconcile()
