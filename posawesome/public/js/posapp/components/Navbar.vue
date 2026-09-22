@@ -13,9 +13,6 @@
         color="primary"
       ></v-img>
       <v-toolbar-title
-        @click="go_desk"
-        style="cursor: pointer"
-        class="text-uppercase text-primary"
       >
         <span class="font-weight-light">pos</span>
         <span>awesome</span>
@@ -203,10 +200,10 @@ export default {
     changePage(key) {
       this.$emit('changePage', key);
     },
-    go_desk() {
-      frappe.set_route('/');
-      location.reload();
-    },
+    // go_desk() {
+    //   frappe.set_route('/');
+    //   location.reload();
+    // },
     go_about() {
       const win = window.open(
         'https://github.com/yrestom/POS-Awesome',
