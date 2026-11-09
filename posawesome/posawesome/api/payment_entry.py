@@ -141,14 +141,9 @@ def create_payment_entry(
                     raise last_error
         
         if submit:
-            # Bypass submit() method which validates permissions
-            # Set docstatus directly and update database
-            pe.docstatus = 1  # Mark as submitted
-            pe.db_update()    # Save to database
-            # Commit the transaction to ensure data is persisted
+            # submit() ejecuta on_submit, que genera GL Entry y Payment Ledger Entry
+            pe.submit()
             frappe.db.commit()
-            # NOTE: Not calling pe.run_method("on_submit") to avoid permission checks
-            # Standard payment entry hooks are not critical for POS workflow
         
         # Reload to get accurate values after commit
         pe.reload()
