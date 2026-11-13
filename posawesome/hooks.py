@@ -296,4 +296,8 @@ fixtures = [
         "doctype": "Property Setter",
         "filters": [["name", "in", ("Sales Invoice-posa_pos_opening_shift-no_copy")]],
     },
+    {
+        "doctype": "Print Format",
+        "filters": [["name", "in", ("Factura POS", "POS Delivery Note")]],
+    },
 ]

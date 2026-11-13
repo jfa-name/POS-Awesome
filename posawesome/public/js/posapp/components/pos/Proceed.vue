@@ -323,58 +323,6 @@
               </v-date-picker>
             </v-menu>
           </v-col>
-          <v-col cols="12" v-if="deliverynote_doc.posa_delivery_date">
-            <v-autocomplete
-              dense
-              clearable
-              auto-select-first
-              outlined
-              color="primary"
-              :label="__('Address')"
-              v-model="deliverynote_doc.shipping_address_name"
-              :items="addresses"
-              item-title="address_title"
-              item-value="name"
-              background-color="white"
-              no-data-text="Address not found"
-              hide-details
-              :custom-filter="addressFilter"
-              append-inner-icon="mdi-plus"
-              @click:append-inner="new_address"
-            >
-              <template v-slot:item="{ item, props }">
-                <v-list-item v-bind="props" :title="undefined">
-                  <v-list-item-title
-                    class="text-primary text-subtitle-1"
-                    v-html="item.raw.address_title"
-                  ></v-list-item-title>
-                  <v-list-item-title
-                    v-html="item.raw.address_line1"
-                  ></v-list-item-title>
-                  <v-list-item-subtitle
-                    v-if="item.raw.custoaddress_line2mer_name"
-                    v-html="item.raw.address_line2"
-                  ></v-list-item-subtitle>
-                  <v-list-item-subtitle
-                    v-if="item.raw.city"
-                    v-html="item.raw.city"
-                  ></v-list-item-subtitle>
-                  <v-list-item-subtitle
-                    v-if="item.raw.state"
-                    v-html="item.raw.state"
-                  ></v-list-item-subtitle>
-                  <v-list-item-subtitle
-                    v-if="item.raw.country"
-                    v-html="item.raw.mobile_no"
-                  ></v-list-item-subtitle>
-                  <v-list-item-subtitle
-                    v-if="item.raw.address_type"
-                    v-html="item.raw.address_type"
-                  ></v-list-item-subtitle>
-                </v-list-item>
-              </template>
-            </v-autocomplete>
-          </v-col>
           <v-col cols="12" v-if="pos_profile.posa_display_additional_notes">
             <v-textarea
               class="pa-0"
@@ -580,7 +528,6 @@ export default {
     is_write_off_change: 0,
     date_menu: false,
     po_date_menu: false,
-    addresses: [],
     sales_persons: [],
     sales_person: '',
     paid_change: 0,
@@ -664,7 +611,6 @@ export default {
               color: 'success',
             });
             frappe.utils.play_sound('submit');
-            this.addresses = [];
           }
         },
       });
@@ -776,48 +722,6 @@ export default {
       } else {
         this.customer_credit_dict = [];
       }
-    },
-    get_addresses() {
-      const vm = this;
-      if (!vm.deliverynote_doc) {
-        return;
-      }
-      frappe.call({
-        method: 'posawesome.posawesome.api.posapp.get_customer_addresses',
-        args: { customer: vm.deliverynote_doc.customer },
-        async: true,
-        callback: function (r) {
-          if (!r.exc) {
-            vm.addresses = r.message;
-          } else {
-            vm.addresses = [];
-          }
-        },
-      });
-    },
-    addressFilter(item, queryText) {
-      const textOne = item.raw.address_title
-        ? item.raw.address_title.toLowerCase()
-        : '';
-      const textTwo = item.raw.address_line1
-        ? item.raw.address_line1.toLowerCase()
-        : '';
-      const textThree = item.raw.address_line2
-        ? item.raw.address_line2.toLowerCase()
-        : '';
-      const textFour = item.raw.city ? item.raw.city.toLowerCase() : '';
-      const textFifth = item.raw.name.toLowerCase();
-      const searchText = queryText.toLowerCase();
-      return (
-        textOne.indexOf(searchText) > -1 ||
-        textTwo.indexOf(searchText) > -1 ||
-        textThree.indexOf(searchText) > -1 ||
-        textFour.indexOf(searchText) > -1 ||
-        textFifth.indexOf(searchText) > -1
-      );
-    },
-    new_address() {
-      evntBus.$emit('open_new_address', this.deliverynote_doc.customer);
     },
     get_sales_person_names() {
       const vm = this;
@@ -1101,7 +1005,6 @@ export default {
         );
       }
       this.loyalty_amount = 0;
-      this.get_addresses();
       this.get_sales_person_names();
     });
     evntBus.$on('register_pos_profile', (data) => {
@@ -1112,16 +1015,11 @@ export default {
       this.currency_precision =
         frappe.defaults.get_default('currency_precision') || 2;
     });
-    evntBus.$on('add_the_new_address', (data) => {
-      this.addresses.push(data);
-      this.$forceUpdate();
-    });
     evntBus.$on('update_deliverynote_type', (data) => {
       this.deliverynoteType = data;
       if (this.deliverynote_doc && data != 'Order') {
         this.deliverynote_doc.posa_delivery_date = null;
         this.deliverynote_doc.posa_notes = null;
-        this.deliverynote_doc.shipping_address_name = null;
       }
     });
     evntBus.$on('update_customer', (customer) => {
@@ -1146,7 +1044,6 @@ export default {
   beforeUnmount() {
     evntBus.$off('send_deliverynote_doc_payment');
     evntBus.$off('register_pos_profile');
-    evntBus.$off('add_the_new_address');
     evntBus.$off('update_deliverynote_type');
     evntBus.$off('update_customer');
     evntBus.$off('set_pos_settings');

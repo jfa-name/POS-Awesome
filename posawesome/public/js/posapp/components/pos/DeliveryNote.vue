@@ -27,7 +27,7 @@
           cols="12"
           class="pb-2"
         >
-          <Customer></Customer>
+          <Customer shipping_target="deliverynote"></Customer>
         </v-col>
       </v-row>
 
@@ -754,6 +754,7 @@ export default {
       deliverynote_doc: "",
       return_doc: "",
       customer: "",
+      shipping_address_name: null,
       customer_info: "",
       discount_amount: 0,
       additional_discount_percentage: 0,
@@ -1078,6 +1079,11 @@ export default {
           }
         });
       }
+      this.shipping_address_name = data.shipping_address_name || null;
+      evntBus.$emit("set_shipping_address", {
+        target: "deliverynote",
+        name: this.shipping_address_name,
+      });
       return old_deliverynote;
     },
 
@@ -1095,6 +1101,7 @@ export default {
       doc.currency = doc.currency || this.pos_profile.currency;
       doc.naming_series = doc.naming_series || this.pos_profile.naming_series;
       doc.customer = this.customer;
+      doc.shipping_address_name = this.shipping_address_name;
       doc.items = this.get_deliverynote_items();
       doc.total = this.subtotal;
       doc.discount_amount = flt(this.discount_amount);
@@ -2595,6 +2602,11 @@ export default {
     });
     evntBus.$on("update_customer", (customer) => {
       this.customer = customer;
+    });
+    evntBus.$on("update_shipping_address", (data) => {
+      if (data.target === "deliverynote") {
+        this.shipping_address_name = data.name;
+      }
     });
     evntBus.$on("fetch_customer_details", () => {
       this.fetch_customer_details();

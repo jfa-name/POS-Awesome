@@ -311,51 +311,6 @@
               :min="frappe.datetime.now_date()"
             ></v-text-field>
           </v-col>
-          <v-col cols="12" v-if="invoice_doc.posa_delivery_date">
-            <v-autocomplete
-              dense
-              clearable
-              auto-select-first
-              outlined
-              color="primary"
-              :label="__('Address')"
-              v-model="invoice_doc.shipping_address_name"
-              :items="addresses"
-              item-title="address_title"
-              item-value="name"
-              background-color="white"
-              no-data-text="Address not found"
-              hide-details
-              :custom-filter="addressFilter"
-              append-inner-icon="mdi-plus"
-              @click:append-inner="new_address"
-            >
-              <template v-slot:item="{ item, props }">
-                <v-list-item v-bind="props" :title="item.raw.address_title">
-                  <template #subtitle>
-                    <span v-if="item.raw.address_line1">
-                      {{ item.raw.address_line1 }}<br />
-                    </span>
-                    <span v-if="item.raw.address_line2">
-                      {{ item.raw.address_line2 }}<br />
-                    </span>
-                    <span v-if="item.raw.city">
-                      {{ item.raw.city }}<br />
-                    </span>
-                    <span v-if="item.raw.state">
-                      {{ item.raw.state }}<br />
-                    </span>
-                    <span v-if="item.raw.country">
-                      {{ item.raw.country }}<br />
-                    </span>
-                    <span v-if="item.raw.address_type">
-                      {{ item.raw.address_type }}
-                    </span>
-                  </template>
-                </v-list-item>
-              </template>
-            </v-autocomplete>
-          </v-col>
           <v-col cols="12" v-if="pos_profile.posa_display_additional_notes">
             <v-textarea
               class="pa-0"
@@ -627,7 +582,6 @@ export default {
     is_write_off_change: 0,
     date_menu: false,
     po_date_menu: false,
-    addresses: [],
     sales_persons: [],
     sales_person: '',
     paid_change: 0,
@@ -803,7 +757,6 @@ export default {
               color: 'success',
             });
             frappe.utils.play_sound('submit');
-            vm.addresses = [];
           }
         },
       });
@@ -901,45 +854,6 @@ export default {
       } else {
         this.customer_credit_dict = [];
       }
-    },
-    get_addresses() {
-      const vm = this;
-      if (!vm.invoice_doc) {
-        return;
-      }
-      frappe.call({
-        method: 'posawesome.posawesome.api.posapp.get_customer_addresses',
-        args: { customer: vm.invoice_doc.customer },
-        async: true,
-        callback: function (r) {
-          if (!r.exc) {
-            vm.addresses = r.message;
-          } else {
-            vm.addresses = [];
-          }
-        },
-      });
-    },
-    // Vuetify 3: custom-filter signature is (value, query, item) => boolean
-    addressFilter(value, query, item) {
-      if (!query) return true;
-      const raw = item.raw;
-      const searchText = query.toLowerCase();
-      const textOne = raw.address_title ? raw.address_title.toLowerCase() : '';
-      const textTwo = raw.address_line1 ? raw.address_line1.toLowerCase() : '';
-      const textThree = raw.address_line2 ? raw.address_line2.toLowerCase() : '';
-      const textFour = raw.city ? raw.city.toLowerCase() : '';
-      const textFifth = raw.name ? raw.name.toLowerCase() : '';
-      return (
-        textOne.indexOf(searchText) > -1 ||
-        textTwo.indexOf(searchText) > -1 ||
-        textThree.indexOf(searchText) > -1 ||
-        textFour.indexOf(searchText) > -1 ||
-        textFifth.indexOf(searchText) > -1
-      );
-    },
-    new_address() {
-      evntBus.$emit('open_new_address', this.invoice_doc.customer);
     },
     get_sales_person_names() {
       const vm = this;
@@ -1229,23 +1143,17 @@ export default {
           );
         }
         this.loyalty_amount = 0;
-        this.get_addresses();
         this.get_sales_person_names();
       });
       evntBus.$on('register_pos_profile', (data) => {
         this.pos_profile = data.pos_profile;
         this.get_mpesa_modes();
       });
-      evntBus.$on('add_the_new_address', (data) => {
-        this.addresses.push(data);
-        this.$forceUpdate();
-      });
       evntBus.$on('update_invoice_type', (data) => {
         this.invoiceType = data;
         if (this.invoice_doc && data != 'Order') {
           this.invoice_doc.posa_delivery_date = null;
           this.invoice_doc.posa_notes = null;
-          this.invoice_doc.shipping_address_name = null;
         }
       });
     });
@@ -1271,7 +1179,6 @@ export default {
   beforeUnmount() {
     evntBus.$off('send_invoice_doc_payment');
     evntBus.$off('register_pos_profile');
-    evntBus.$off('add_the_new_address');
     evntBus.$off('update_invoice_type');
     evntBus.$off('update_customer');
     evntBus.$off('set_pos_settings');

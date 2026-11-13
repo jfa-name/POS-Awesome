@@ -1543,17 +1543,25 @@ def get_customer_addresses(customer):
             address.city,
             address.state,
             address.country,
-            address.address_type
+            address.address_type,
+            address.is_shipping_address,
+            CASE
+                WHEN address.name = (
+                    SELECT c.customer_primary_address
+                    FROM `tabCustomer` AS c
+                    WHERE c.name = %s
+                ) THEN 1
+                ELSE 0
+            END AS is_primary_address
         FROM `tabAddress` as address
         INNER JOIN `tabDynamic Link` AS link
 				ON address.name = link.parent
         WHERE link.link_doctype = 'Customer'
-            AND link.link_name = '{0}'
+            AND link.link_name = %s
             AND address.disabled = 0
-        ORDER BY address.name
-        """.format(
-            customer
-        ),
+        ORDER BY address.address_line1, address.name
+        """,
+        (customer, customer),
         as_dict=1,
     )
 

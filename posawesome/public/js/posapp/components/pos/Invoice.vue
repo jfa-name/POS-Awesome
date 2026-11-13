@@ -28,14 +28,14 @@
           cols="9"
           class="pb-2 pr-0"
         >
-          <Customer></Customer>
+          <Customer shipping_target="invoice"></Customer>
         </v-col>
         <v-col
           v-if="!pos_profile.posa_allow_sales_order"
           cols="12"
           class="pb-2"
         >
-          <Customer></Customer>
+          <Customer shipping_target="invoice"></Customer>
         </v-col>
         <v-col v-if="pos_profile.posa_allow_sales_order" cols="3" class="pb-2">
           <v-select
@@ -784,6 +784,7 @@ export default {
       invoice_doc: "",
       return_doc: "",
       customer: "",
+      shipping_address_name: null,
       customer_info: "",
       discount_amount: 0,
       additional_discount_percentage: 0,
@@ -1139,6 +1140,11 @@ export default {
           }
         });
       }
+      this.shipping_address_name = data.shipping_address_name || null;
+      evntBus.$emit("set_shipping_address", {
+        target: "invoice",
+        name: this.shipping_address_name,
+      });
       return old_invoice;
     },
 
@@ -1156,6 +1162,7 @@ export default {
       doc.currency = doc.currency || this.pos_profile.currency;
       doc.naming_series = doc.naming_series || this.pos_profile.naming_series;
       doc.customer = this.customer;
+      doc.shipping_address_name = this.shipping_address_name;
       doc.items = this.get_invoice_items();
       doc.total = this.subtotal;
       doc.discount_amount = flt(this.discount_amount);
@@ -2677,6 +2684,11 @@ export default {
     });
     evntBus.$on("update_customer", (customer) => {
       this.customer = customer;
+    });
+    evntBus.$on("update_shipping_address", (data) => {
+      if (data.target === "invoice") {
+        this.shipping_address_name = data.name;
+      }
     });
     evntBus.$on("fetch_customer_details", () => {
       this.fetch_customer_details();

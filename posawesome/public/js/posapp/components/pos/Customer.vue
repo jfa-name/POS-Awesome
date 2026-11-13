@@ -43,6 +43,46 @@
         </v-list-item>
       </template>
     </v-autocomplete>
+    <v-autocomplete
+      v-if="shipping_target && addresses.length > 1"
+      dense
+      auto-select-first
+      outlined
+      color="primary"
+      class="mt-2"
+      :label="__('Address')"
+      v-model="shipping_address_name"
+      :items="addresses"
+      item-title="label"
+      item-value="name"
+      background-color="white"
+      :no-data-text="__('Address not found')"
+      hide-details
+      :custom-filter="addressFilter"
+      append-inner-icon="mdi-plus"
+      @click:append-inner="new_address"
+    >
+      <template v-slot:item="{ item, props }">
+        <v-list-item v-bind="props">
+          <template #subtitle>
+            <span v-if="item.raw.address_type">
+              {{ item.raw.address_type }}
+            </span>
+          </template>
+        </v-list-item>
+      </template>
+    </v-autocomplete>
+    <v-btn
+      v-if="shipping_target && customer && addresses.length <= 1"
+      class="mt-2"
+      block
+      variant="outlined"
+      color="primary"
+      prepend-icon="mdi-plus"
+      @click="new_address"
+    >
+      {{ __('New Address') }}
+    </v-btn>
     <div class="mb-8">
       <UpdateCustomer></UpdateCustomer>
     </div>
@@ -53,12 +93,19 @@
 import { evntBus } from '../../bus';
 import UpdateCustomer from './UpdateCustomer.vue';
 export default {
+  props: {
+    // 'invoice' or 'deliverynote': enables the delivery address selector for that document
+    shipping_target: { type: String, default: null },
+  },
+
   data: () => ({
     pos_profile: '',
     customers: [],
     customer: '',
     readonly: false,
     customer_info: {},
+    addresses: [],
+    shipping_address_name: null,
   }),
 
   components: {
@@ -66,6 +113,51 @@ export default {
   },
 
   methods: {
+    get_addresses() {
+      if (!this.shipping_target || !this.customer) {
+        this.addresses = [];
+        this.shipping_address_name = null;
+        return;
+      }
+      const customer = this.customer;
+      frappe.call({
+        method: 'posawesome.posawesome.api.posapp.get_customer_addresses',
+        args: { customer },
+        async: true,
+        callback: (r) => {
+          if (customer !== this.customer) return;
+          this.addresses = (r.exc ? [] : r.message || []).map((a) => this.with_label(a));
+          // Keep the current address if it belongs to this customer, otherwise pick the default
+          if (!this.addresses.some((a) => a.name === this.shipping_address_name)) {
+            this.shipping_address_name = this.get_default_address();
+          }
+        },
+      });
+    },
+    with_label(address) {
+      const label = [address.address_line1, address.address_line2, address.city, address.state]
+        .filter(Boolean)
+        .join(' ');
+      return { ...address, label: label || address.name };
+    },
+    get_default_address() {
+      if (this.addresses.length === 1) return this.addresses[0].name;
+      // Backend returns addresses sorted by address_line1, so the first flagged one is alphabetical
+      const shipping = this.addresses.find((a) => a.is_shipping_address);
+      if (shipping) return shipping.name;
+      const primary = this.addresses.find((a) => a.is_primary_address);
+      return primary ? primary.name : null;
+    },
+    new_address() {
+      evntBus.$emit('open_new_address', this.customer);
+    },
+    addressFilter(value, query, item) {
+      if (!query) return true;
+      const raw = item.raw;
+      const searchText = query.toLowerCase();
+      return [raw.address_title, raw.address_line1, raw.address_line2, raw.city, raw.name]
+        .some((text) => text && text.toLowerCase().indexOf(searchText) > -1);
+    },
     get_customer_names() {
       const vm = this;
       if (this.customers.length > 0) {
@@ -173,11 +265,30 @@ export default {
       evntBus.$on('fetch_customer_details', () => {
         this.get_customer_names();
       });
+      evntBus.$on('set_shipping_address', ({ target, name }) => {
+        if (!this.shipping_target || target !== this.shipping_target) return;
+        this.shipping_address_name = name || this.get_default_address();
+      });
+      evntBus.$on('add_the_new_address', (data) => {
+        if (!this.shipping_target) return;
+        this.addresses.push(this.with_label(data));
+        if (!this.shipping_address_name) {
+          this.shipping_address_name = this.get_default_address();
+        }
+      });
     });
   },
 
   watch: {
+    shipping_address_name(value) {
+      if (!this.shipping_target) return;
+      evntBus.$emit('update_shipping_address', {
+        target: this.shipping_target,
+        name: value,
+      });
+    },
     customer(newValue) {
+      this.get_addresses();
       if (!newValue) {
         return;
       }
